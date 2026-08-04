@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    restart: unless-stopped
+    ports:
+      - "4533:4533"
+    volumes:
+      - "${NAVIDROME_DATA_DIR:-./data}:/data"
+      - "${MUSIC_DIR:-./music}:/music:ro"
+    environment:
+      ND_MUSICFOLDER: /music
+      ND_DATAFOLDER: /data
+      ND_SCANSCHEDULE: "1h"
+      ND_ENABLETRANSCODING: "true"
+      ND_LOGLEVEL: info
+      ND_PLAYLISTSPATH: /music/_Playlists
+
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+
+  # Optional: Audiobookshelf (Stage 9)
+  # audiobookshelf:
+  #   image: ghcr.io/advplyr/audiobookshelf:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "13378:80"
+  #   volumes:
+  #     - ./audiobooks:/audiobooks
+  #     - ./abs-config:/config
+  #     - ./abs-metadata:/metadata

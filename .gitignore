@@ -1,0 +1,26 @@
+# Secrets
+.env
+
+# macOS
+.DS_Store
+
+# Music files (not source code)
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.wav
+
+# beets database
+*.db
+
+# IDE
+.idea/
+.vscode/
+
+# Docker volumes (created at runtime)
+data/
+music/
+music-inbox/
+caddy-data/
+caddy-config/
