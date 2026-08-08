@@ -1,0 +1,35 @@
+# slskd configuration
+instance_name: redl-music
+
+web:
+  port: 5030
+  url_base: /
+  authentication:
+    disabled: true
+
+soulseek:
+  address: server.slsknet.org
+  port: 2271
+
+shares:
+  directories:
+    - /downloads
+  filters:
+    - '\.mp3$'
+    - '\.flac$'
+
+directories:
+  downloads: /downloads
+
+transfers:
+  upload:
+    slots: 1
+    speed_limit: 1
+
+filters:
+  search:
+    - '\.mp3$'
+    - '\.flac$'
+
+flags:
+  no_connect: false

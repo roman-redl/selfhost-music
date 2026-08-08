@@ -38,3 +38,17 @@ services:
   #     - ./audiobooks:/audiobooks
   #     - ./abs-config:/config
   #     - ./abs-metadata:/metadata
+
+  slskd:
+    image: slskd/slskd:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5030:5030"     # Web UI + API (localhost only)
+    volumes:
+      - ./config/slskd.yml:/app/slskd.yml:ro
+      - ./slskd-data:/app
+      - ./music-inbox:/downloads
+    environment:
+      SLSKD_SLSK_USERNAME: ${SLSKD_USERNAME}
+      SLSKD_SLSK_PASSWORD: ${SLSKD_PASSWORD}
+      SLSKD_HTTP_PORT: 5030
