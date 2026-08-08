@@ -25,6 +25,3 @@ music-inbox/
 caddy-data/
 caddy-config/
 MusicRaw/
-MusicRaw/Library/
-MusicRaw/beets-library.db
-MusicRaw/unmatched.txt
