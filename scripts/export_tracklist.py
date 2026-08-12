@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """
-export_tracklist.py — Export full track inventory from Navidrome (Subsonic API) as TSV.
+export_tracklist.py — Export full track inventory from Navidrome (Subsonic API) as CSV.
 
 Usage:
-  python3 export_tracklist.py [base_url] > tracklist.tsv
+  python3 export_tracklist.py [base_url] > tracklist.csv
   # base_url defaults to http://localhost:4533/rest (run on the VPS)
   # Remote: python3 export_tracklist.py https://$DOMAIN/rest
 
 Credentials: NAVIDROME_USER / NAVIDROME_PASSWORD env vars, or .env next to the
 script / in the repo root.
 
-Output columns (TSV): id, artist, title, album, year, duration_s, format, path
-Sorted by artist, title (case-insensitive). The file is versioned in git as a
-snapshot of the collection — regenerate it after mass imports.
+Output: CSV with header id, artist, title, album, year, duration_s, format, path.
+Sorted by artist, title (case-insensitive). Opens as a table in Numbers/Excel
+and renders as a table on GitHub. The file is versioned in git as a snapshot of
+the collection — regenerate it after mass imports.
 """
 
+import csv
 import os
 import sys
 import unicodedata
@@ -102,7 +104,7 @@ def build_inventory():
 
 
 def clean(value):
-    """Make a value TSV-safe (strip tabs/newlines)."""
+    """Make a value CSV-safe (strip tabs/newlines)."""
     return str(value).replace("\t", " ").replace("\n", " ").strip()
 
 
@@ -127,9 +129,10 @@ def main():
 
     rows.sort(key=sort_key)
 
-    print("\t".join(["id", "artist", "title", "album", "year", "duration_s", "format", "path"]))
+    writer = csv.writer(sys.stdout)
+    writer.writerow(["id", "artist", "title", "album", "year", "duration_s", "format", "path"])
     for sid, s in rows:
-        print("\t".join([
+        writer.writerow([
             sid,
             clean(s["artist"]),
             clean(s["title"]),
@@ -138,7 +141,7 @@ def main():
             clean(s["duration"]),
             clean(s["suffix"]),
             clean(s["path"]),
-        ]))
+        ])
 
     print(f"# exported {len(rows)} tracks", file=sys.stderr)
 
