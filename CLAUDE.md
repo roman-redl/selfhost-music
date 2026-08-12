@@ -21,7 +21,7 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 2. Watcher всё делает сам: `fix_tags.py` (теги) → `get_cover.py` (обложка) → Navidrome. ~30 секунд.
 3. Ручная обложка: положить `Artist - Title.jpg`/`.png` тем же именем рядом в инбокс — высший приоритет. Удаляется только после успешного встраивания, иначе остаётся рядом с треком.
 4. Детали и флаги: `docs/howto-add-music-and-covers.md`.
-5. После массовых заливок обнови снапшот коллекции: на VPS `python3 scripts/export_tracklist.py > playlists/tracklist.tsv`, файл закоммить.
+5. После массовых заливок обнови снапшот коллекции: на VPS `python3 scripts/export_tracklist.py > playlists/tracklist.csv`, файл закоммить.
 
 ## Как добавить или обновить плейлист
 
@@ -46,7 +46,7 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 | Путь | Что это |
 |---|---|
 | `scripts/` | Операционные: `watch-inbox.sh` (watcher, systemd), `get_cover.py` (обложки MP3/FLAC), `fix_tags.py` (теги), `export_tracklist.py` (снапшот коллекции в TSV), `backup-to-cloud.sh` (бэкап, пока не активен), `setup-vps.sh` (развёртывание с нуля), `duckdns.sh` (справочный) |
-| `playlists/` | Канонические `.m3u` плейлистов + `tracklist.tsv` — снапшот коллекции из Navidrome (обновлять через `export_tracklist.py`) |
+| `playlists/` | Канонические `.m3u` плейлистов + `tracklist.csv` — снапшот коллекции из Navidrome, читаемый таблицей (обновлять через `export_tracklist.py`) |
 | `scripts/archive/` | Одноразовые миграционные (этапы 3–6). Не использовать без понимания контекста |
 | `config/` | `Caddyfile` (домен через env `{$DOMAIN}`), `slskd.yml`, `music-watcher.service` |
 | `docs/` | `project-context.md` (правила/инциденты), `music-migration-plan.md` (хроника + будущее), `howto-add-music-and-covers.md`, `disaster-recovery.md`, `manual-fix-list.txt` |

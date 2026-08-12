@@ -142,7 +142,7 @@ VPS (Oracle, PAYG):
 | `scripts/watch-inbox.sh` | Автоимпорт: mv из инбокса → теги → обложка → Navidrome (systemd `music-watcher`) | Активный |
 | `scripts/get_cover.py` | Обложки MP3/FLAC: ручная → Deezer → iTunes → Cover Art Archive → Discogs → Bing; флаги `--force`, `--artist` | Активный |
 | `scripts/fix_tags.py` | Чинит Artist/Title/Album по имени файла (MP3+FLAC), `--dry-run`, `--limit` | Активный |
-| `scripts/export_tracklist.py` | Экспорт полного списка треков из Navidrome в TSV (`playlists/tracklist.tsv`) | Активный |
+| `scripts/export_tracklist.py` | Экспорт полного списка треков из Navidrome в CSV (`playlists/tracklist.csv`) | Активный |
 | `scripts/backup-to-cloud.sh` | Ночной бэкап `/music/` + `/data/` в Mail.ru WebDAV | Готов, **не активен** (нет пароля приложения) |
 | `scripts/setup-vps.sh` | Развёртывание VPS с нуля (Oracle ARM) | Для DR |
 | `scripts/duckdns.sh` | DDNS-обновление (на VPS работает сгенерированная копия `/opt/duckdns/duck.sh` по cron) | Справочный |
@@ -172,7 +172,8 @@ VPS (Oracle, PAYG):
 - **Локальная копия библиотеки:** `MusicRaw/Library/Singletons/` на Mac — зеркало
   для массовых правок; после правок rsync на VPS + триггер скана.
 - **Канонические m3u:** `playlists/` в корне репозитория (версионируются в git);
-  снапшот коллекции — `playlists/tracklist.tsv` (обновлять через `export_tracklist.py`).
+  снапшот коллекции — `playlists/tracklist.csv` (читается таблицей в Numbers/Excel;
+  обновлять через `export_tracklist.py`).
 - **Логи:** watcher — `/var/log/music-import.log`; бэкапа — `/var/log/music-backup.log`.
 
 ## Disaster Recovery
