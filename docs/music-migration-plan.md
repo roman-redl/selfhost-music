@@ -817,7 +817,7 @@ sleep timer, отсутствие пересечения с музыкой в sh
 
 ### Прочее
 
-- 63 трека без обложек + список на ручную замену: `docs/manual-fix-list.txt`.
+- Треки без обложек и на ручную замену — список в `docs/manual-fix-list.txt`.
 - Рекомендации (Smart Playlists / Maloja / Last.fm) — развилка 4 в project-context.md.
 - slskd отключён; порядок включения для разовой докачки — project-context.md, инцидент 15.
 

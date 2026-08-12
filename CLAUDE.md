@@ -6,13 +6,6 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 инциденты), [docs/music-migration-plan.md](docs/music-migration-plan.md) (закрытая хроника
 миграции + «Осталось на будущее»).
 
-## Текущее состояние
-
-- Библиотека: 1355 треков, 44 плейлиста, обложки у 95.4%. Живёт на VPS в `/opt/selfhost-music/music/Singletons/`.
-- **БЭКАП В MAIL.RU НЕ НАСТРОЕН** — нужен пароль приложения (задача человека, см. «Осталось на будущее» в плане).
-- slskd (Soulseek) отключён: сервис закомментирован в docker-compose.yml, данные сохранены.
-- Этап 9 (аудиокниги, Audiobookshelf) отложен.
-
 ## Правила (нарушать нельзя)
 
 - **Имена файлов:** `Artist - Title.ext`, разделитель строго ` - `. Без `—`, `|`, `_`-разделителей, без leading-номеров.
@@ -57,6 +50,7 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 
 ## Где что читать
 
+- Состояние системы и открытые задачи: `docs/project-context.md` («Текущее состояние») и «Осталось на будущее» в плане
 - Правила, решения, инциденты с датами: `docs/project-context.md`
 - Хроника миграции и «Осталось на будущее»: `docs/music-migration-plan.md`
 - Добавление музыки/обложек: `docs/howto-add-music-and-covers.md`

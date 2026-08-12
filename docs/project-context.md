@@ -9,7 +9,7 @@
 VK отключил публичное API → Kate Mobile перестал докачивать музыку → миграция на
 self-hosted **Navidrome** (Oracle Cloud Free Tier + PAYG, Frankfurt, Ampere A1
 4 OCPU / 24 GB RAM, Ubuntu 24.04, Docker). Этапы 1–8 выполнены 2026-08-06 … 08-10.
-Итог: **1355 треков, 44 плейлиста, 95.4% с обложками**, домен
+Библиотека перенесена на VPS, плейлисты восстановлены, домен
 `redl-music.duckdns.org` (DuckDNS + Caddy + Let's Encrypt).
 
 ## Архитектура
@@ -130,6 +130,9 @@ VPS (Oracle, PAYG):
     разными агентами. Унифицировано: все `.m3u` только простые пути `Singletons/Artist - Title.ext`,
     без `#EXTM3U`/`#EXTINF` (импорт работает и так, но EXTINF-названия — мёртвый груз, могут
     расходиться с тегами).
+18. **Читается только `*.m3u`** — и Navidrome, и `import_playlists_api.py` матчат строго по
+    расширению `.m3u`. Файлы `.m3u.bak` (бэкапы от пересборки путей) нигде не читаются —
+    мусор, удалены (2026-08-13). Никаких `.bak` в `playlists_m3u/` не хранить.
 
 ## Карта скриптов
 
@@ -145,16 +148,28 @@ VPS (Oracle, PAYG):
 
 ## Текущее состояние
 
-- **VPS:** `ubuntu@redl-music.duckdns.org`, ключ `~/.ssh/id_ed25519_oracle`, sudo без пароля.
-  Репозиторий `/opt/selfhost-music/`, стек: caddy + navidrome (docker compose).
+> Цифры (число треков, плейлистов, обложек) здесь намеренно не фиксируются — они меняются
+> с каждым импортом. Проверить актуальные: число файлов —
+> `find /opt/selfhost-music/music -type f | wc -l` на VPS; состав коллекции и плейлистов —
+> в веб-интерфейсе Navidrome.
+
+Статус-флаги (обновлять при изменении):
+
 - **Бэкап:** НЕ НАСТРОЕН (см. инцидент 10). `davfs2` установлен, скрипт готов — нужен
   пароль приложения Mail.ru в `.env` (`MAILRU_EMAIL`, `MAILRU_APP_PASSWORD`).
-- **Пароль Navidrome:** в `.env` (`NAVIDROME_USER`/`NAVIDROME_PASSWORD`), 14 символов,
-  содержит `#` (кодировать!). Старый утёкший пароль из git-истории недействителен.
-- **Обложки:** 95.4%; 63 трека без обложек + список на ручную замену — `docs/manual-fix-list.txt`.
-- **Локальная копия библиотеки:** `MusicRaw/Library/Singletons/` на Mac (12 GB) — зеркало
+- **slskd:** выключен (см. инцидент 15).
+- **Этап 9 (аудиокниги):** отложен.
+- **Пароль Navidrome:** в `.env` (`NAVIDROME_USER`/`NAVIDROME_PASSWORD`), содержит `#`
+  (кодировать!). Старый утёкший пароль из git-истории недействителен.
+- **Треки без обложек и на ручную замену:** список в `docs/manual-fix-list.txt`.
+
+Точки входа:
+
+- **VPS:** `ubuntu@redl-music.duckdns.org`, ключ `~/.ssh/id_ed25519_oracle`, sudo без пароля.
+  Репозиторий `/opt/selfhost-music/`, стек: caddy + navidrome (docker compose).
+- **Локальная копия библиотеки:** `MusicRaw/Library/Singletons/` на Mac — зеркало
   для массовых правок; после правок rsync на VPS + триггер скана.
-- **Лог watcher:** `/var/log/music-import.log`; бэкапа — `/var/log/music-backup.log`.
+- **Логи:** watcher — `/var/log/music-import.log`; бэкапа — `/var/log/music-backup.log`.
 
 ## Disaster Recovery
 
