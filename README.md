@@ -43,8 +43,7 @@ docker compose up -d
 ```
 .
 ├── CLAUDE.md              # Операционная точка входа для агентов (правила, процедуры)
-├── playlists/             # Канонические .m3u плейлистов (в git)
-├── tracklist.tsv          # Снапшот коллекции из Navidrome (обновлять export_tracklist.py)
+├── playlists/             # Канонические .m3u плейлистов + tracklist.tsv (снапшот коллекции)
 ├── docker-compose.yml    # Navidrome + Caddy (slskd закомментирован, Audiobookshelf опционален)
 ├── config/
 │   └── Caddyfile         # HTTPS reverse proxy
