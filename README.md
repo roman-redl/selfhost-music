@@ -42,13 +42,17 @@ docker compose up -d
 
 ```
 .
-├── docker-compose.yml    # Navidrome + Caddy (+ optional Audiobookshelf, slskd)
+├── CLAUDE.md              # Операционная точка входа для агентов (правила, процедуры)
+├── docker-compose.yml    # Navidrome + Caddy (slskd закомментирован, Audiobookshelf опционален)
 ├── config/
 │   └── Caddyfile         # HTTPS reverse proxy
 ├── scripts/              # операционные скрипты (см. таблицу ниже)
 │   └── archive/          # одноразовые скрипты миграции (этапы 3–6, см. план)
 ├── docs/
-│   └── music-migration-plan.md  # Full plan, architecture, step-by-step
+│   ├── project-context.md    # Правила, решения, инциденты (справочник)
+│   ├── music-migration-plan.md  # Закрытая хроника миграции + «Осталось на будущее»
+│   ├── howto-add-music-and-covers.md
+│   └── disaster-recovery.md
 ├── .env.example          # Environment template (copy to .env)
 └── .gitignore
 ```
@@ -67,7 +71,9 @@ docker compose up -d
 
 ## Migration from VK/Kate Mobile
 
-See [docs/music-migration-plan.md](docs/music-migration-plan.md) for the full step-by-step migration plan — from VPS setup through metadata normalization, playlist recovery, gap filling, and client configuration.
+Migration is complete (stages 1–8). For agents: start with [CLAUDE.md](CLAUDE.md), then
+[docs/project-context.md](docs/project-context.md) for rules and incidents.
+The full step-by-step chronicle is [docs/music-migration-plan.md](docs/music-migration-plan.md).
 
 ## License
 
