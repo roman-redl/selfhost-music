@@ -6,7 +6,7 @@
 
 Обложки скачиваются для новых треков через `scripts/get_cover.py` (Deezer API + iTunes API).
 Покрытие библиотеки: 95.4% (1292/1355). Watcher: `scripts/watch-inbox.sh` (systemd).
-VPS: `ubuntu@redl-music.duckdns.org`, ключ `~/.ssh/id_ed25519_oracle`, путь `/opt/selfhost-music/`.
+VPS: `ubuntu@$DOMAIN` (значение `DOMAIN` из `.env`), ключ `~/.ssh/id_ed25519_oracle`, путь `/opt/selfhost-music/`.
 
 ## Задача
 

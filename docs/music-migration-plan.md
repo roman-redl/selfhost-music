@@ -129,7 +129,7 @@
 - Oracle Cloud, Frankfurt, PAYG
 - Ampere A1, 4 OCPU, 24 GB RAM, 200 GB диск
 - Ubuntu 24.04 aarch64, Docker 29.7.2
-- Домен: DuckDNS (`redl-music.duckdns.org`) + Caddy + Let's Encrypt
+- Домен: DuckDNS (`$DOMAIN` из `.env`) + Caddy + Let's Encrypt
 - SSH-ключ: `~/.ssh/id_ed25519_oracle`
 
 **Пути на VPS:**
@@ -692,7 +692,7 @@ MusicRaw/
 **Статус:** ✅ завершён (2026-08-10).
 
 1. **Mac:** Supersonic 0.22.1 установлен в `/Applications`. Подключение:
-   URL `https://redl-music.duckdns.org`, логин `roman_zh1`.
+   URL `https://$DOMAIN` (значение из `.env`), логин `roman_zh1`.
 
 2. **Windows:** Supersonic — установить самостоятельно, тот же URL.
 

@@ -30,7 +30,7 @@ Watcher сам найдёт картинку, встроит её в MP3/FLAC и
 ### С телефона (Material Files)
 
 1. Открой Material Files
-2. Добавь SFTP-соединение: хост `redl-music.duckdns.org`, юзер `ubuntu`, ключ `~/.ssh/id_ed25519_oracle`
+2. Добавь SFTP-соединение: хост — значение `DOMAIN` из `.env`, юзер `ubuntu`, ключ `~/.ssh/id_ed25519_oracle`
 3. Перейди в `/opt/selfhost-music/music-inbox/`
 4. Загрузи файл — автоимпорт сработает так же
 
@@ -82,10 +82,10 @@ python3 scripts/get_cover.py --force --artist "Sandra" MusicRaw/Library/Singleto
 # После замены на Mac — синхронизировать на VPS:
 rsync -avz -e "ssh -i ~/.ssh/id_ed25519_oracle" \
   MusicRaw/Library/Singletons/ \
-  ubuntu@redl-music.duckdns.org:/opt/selfhost-music/music/Singletons/
+  ubuntu@$DOMAIN:/opt/selfhost-music/music/Singletons/
 
 # И триггернуть скан:
-ssh -i ~/.ssh/id_ed25519_oracle ubuntu@redl-music.duckdns.org \
+ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN \
   "curl -s -X POST 'http://localhost:4533/rest/startScan?u=roman_zh1&p=...&v=1.16.1&c=test'"
 ```
 
@@ -98,7 +98,7 @@ ssh -i ~/.ssh/id_ed25519_oracle ubuntu@redl-music.duckdns.org \
 Если трек уже на сервере, можно через SFTP положить `.jpg` рядом с `.mp3` и запустить `get_cover.py`:
 
 ```bash
-ssh -i ~/.ssh/id_ed25519_oracle ubuntu@redl-music.duckdns.org \
+ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN \
   "cd /opt/selfhost-music/music/Singletons/ && python3 ../../scripts/get_cover.py 'Artist - Title.mp3'"
 ```
 
@@ -163,8 +163,8 @@ audio.save()
 ```bash
 rsync -avz -e "ssh -i ~/.ssh/id_ed25519_oracle" \
   MusicRaw/Library/Singletons/ \
-  ubuntu@redl-music.duckdns.org:/opt/selfhost-music/music/Singletons/
+  ubuntu@$DOMAIN:/opt/selfhost-music/music/Singletons/
 
-ssh -i ~/.ssh/id_ed25519_oracle ubuntu@redl-music.duckdns.org \
+ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN \
   "curl -s -X POST 'http://localhost:4533/rest/startScan?u=roman_zh1&p=...&v=1.16.1&c=test'"
 ```

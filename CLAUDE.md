@@ -12,6 +12,7 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 - **Теги:** Artist/Title/Album обязательны. Album неизвестен → имя артиста. Теги = имя файла (NFC-нормализация). Один артист = один регистр. Чинит `scripts/fix_tags.py` (MP3+FLAC).
 - **Матчинг** плейлистов/треков — только агенты (семантика: переводы, транслитерация). Fuzzy-скрипты запрещены (~42% ложных срабатываний).
 - **Запрещено:** yt-dlp (корпоративный запрет), rclone для Mail.ru (не работает — только WebDAV/davfs2), Tailscale/сторонние VPN (корпоративный Mac), хардкод кредов (всё в `.env`).
+- **Домен сервера — только через `DOMAIN` из `.env`**, в командах `$DOMAIN`. Не хардкодить `redl-music.duckdns.org`.
 - **Не трогать:** структуру `/music/` на VPS (Navidrome проиндексировал), `.env` (gitignored, содержит секреты), бэкап-механику без явной задачи.
 
 ## Как добавить музыку
@@ -32,7 +33,7 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 1. Локально: правки → `python3 -m py_compile scripts/*.py` / `bash -n scripts/*.sh` → smoke-тест на **копиях** в /tmp, не на библиотеке.
 2. После перезаписи `.sh` проверить `ls -l` — exec-бит слетает при перезаписи файла (инцидент 2026-08-13: systemd 203/EXEC).
 3. Коммит (короткое сообщение) + push (remote на SSH: `git@github.com:roman-redl/selfhost-music.git`).
-4. VPS: `ssh -i ~/.ssh/id_ed25519_oracle ubuntu@redl-music.duckdns.org` (sudo без пароля):
+4. VPS: `ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN` (sudo без пароля; `$DOMAIN` из `.env`):
    `cd /opt/selfhost-music && sudo git pull --ff-only`.
 5. Перезапуск: `sudo systemctl restart music-watcher`; если менялись Caddyfile/docker-compose — `docker compose up -d caddy`.
 6. **Правки на VPS руками не делать** — репозиторий там расходился с GitHub (инцидент 2026-08-13). Всё через git.

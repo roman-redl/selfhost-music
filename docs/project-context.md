@@ -9,8 +9,8 @@
 VK отключил публичное API → Kate Mobile перестал докачивать музыку → миграция на
 self-hosted **Navidrome** (Oracle Cloud Free Tier + PAYG, Frankfurt, Ampere A1
 4 OCPU / 24 GB RAM, Ubuntu 24.04, Docker). Этапы 1–8 выполнены 2026-08-06 … 08-10.
-Библиотека перенесена на VPS, плейлисты восстановлены, домен
-`redl-music.duckdns.org` (DuckDNS + Caddy + Let's Encrypt).
+Библиотека перенесена на VPS, плейлисты восстановлены, домен из `.env`
+(`DOMAIN`; DuckDNS + Caddy + Let's Encrypt).
 
 ## Архитектура
 
@@ -165,7 +165,7 @@ VPS (Oracle, PAYG):
 
 Точки входа:
 
-- **VPS:** `ubuntu@redl-music.duckdns.org`, ключ `~/.ssh/id_ed25519_oracle`, sudo без пароля.
+- **VPS:** `ubuntu@$DOMAIN` (значение `DOMAIN` из `.env`), ключ `~/.ssh/id_ed25519_oracle`, sudo без пароля.
   Репозиторий `/opt/selfhost-music/`, стек: caddy + navidrome (docker compose).
 - **Локальная копия библиотеки:** `MusicRaw/Library/Singletons/` на Mac — зеркало
   для массовых правок; после правок rsync на VPS + триггер скана.
