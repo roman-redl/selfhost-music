@@ -18,6 +18,9 @@
 .idea/
 .vscode/
 
+# Python
+__pycache__/
+
 # Docker volumes (created at runtime)
 data/
 music/

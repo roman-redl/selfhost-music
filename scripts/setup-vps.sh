@@ -37,7 +37,8 @@ echo "=== [3/8] SSH hardening ==="
 sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^#PermitRootLogin yes/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
-systemctl restart sshd
+# Ubuntu 24.04: SSH service is "ssh" (socket-activated), not "sshd"
+systemctl restart ssh
 
 echo "=== [4/8] Install Docker ==="
 if ! command -v docker &>/dev/null; then

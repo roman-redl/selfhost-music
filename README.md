@@ -13,7 +13,7 @@ Navidrome on Oracle Cloud Free Tier, offline cache on all devices, automatic met
 | [beets](https://beets.io/) | Metadata tagging, album art, folder structure |
 | [Syncthing](https://syncthing.net/) | P2P file sync — laptop ↔ VPS (Mac, Windows, Linux) |
 | [Supersonic](https://github.com/dweymouth/supersonic) | Desktop client with full offline cache (Mac/Win/Linux) |
-| [Ultrasonic](https://gitlab.com/ultrasonic/ultrasonic) | Android client with offline cache |
+| [Substreamer](https://substreamerapp.com/) | Android client with offline cache |
 
 ## Hardware
 
@@ -42,15 +42,28 @@ docker compose up -d
 
 ```
 .
-├── docker-compose.yml    # Navidrome + Caddy (+ optional Audiobookshelf)
+├── docker-compose.yml    # Navidrome + Caddy (+ optional Audiobookshelf, slskd)
 ├── config/
-│   └── Caddyfile         # HTTPS, rate limiting
-├── scripts/              # parse_filenames.py, watch-inbox.sh, backup-cron.sh
+│   └── Caddyfile         # HTTPS reverse proxy
+├── scripts/              # операционные скрипты (см. таблицу ниже)
+│   └── archive/          # одноразовые скрипты миграции (этапы 3–6, см. план)
 ├── docs/
 │   └── music-migration-plan.md  # Full plan, architecture, step-by-step
 ├── .env.example          # Environment template (copy to .env)
 └── .gitignore
 ```
+
+## Scripts
+
+| Скрипт | Назначение | Статус |
+|---|---|---|
+| `scripts/watch-inbox.sh` | Автоимпорт новых файлов из `/music-inbox/` (systemd) | Активный |
+| `scripts/get_cover.py` | Скачивание и встраивание обложек (MP3/FLAC, 6 источников) | Активный |
+| `scripts/fix_tags.py` | Заполнение Artist/Title/Album из имени файла (MP3/FLAC) | Активный |
+| `scripts/backup-to-cloud.sh` | Ежедневный бэкап `/music/` и `/data/` в Mail.ru (WebDAV) | Активный (cron) |
+| `scripts/setup-vps.sh` | Развёртывание VPS с нуля (Oracle Cloud ARM) | Для DR |
+| `scripts/duckdns.sh` | Обновление DuckDNS (на VPS работает сгенерированная копия) | Справочный |
+| `scripts/archive/*` | Одноразовые скрипты миграции (парсинг кеша, fuzzy-матчинг, slskd, массовые обложки, импорт плейлистов) | Исторические |
 
 ## Migration from VK/Kate Mobile
 

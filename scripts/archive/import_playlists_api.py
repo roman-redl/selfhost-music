@@ -12,8 +12,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 BASE_URL = "http://localhost:4533/rest"
-USER = "roman_zh1"
-PASS = "VJycnhasdjkh12!"
+USER = os.environ.get("NAVIDROME_USER", "")
+PASS = os.environ.get("NAVIDROME_PASS", "")
 CLIENT = "import_script"
 
 M3U_DIR = sys.argv[1] if len(sys.argv) > 1 else "/opt/selfhost-music/music/_Playlists"
@@ -191,6 +191,13 @@ def import_playlist(filepath: str) -> dict:
 
 
 def main():
+    if not USER or not PASS:
+        print(
+            "ERROR: set NAVIDROME_USER and NAVIDROME_PASS environment variables",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     print(f"Importing playlists from: {M3U_DIR}")
     print(f"Mode: {'DRY RUN' if DRY_RUN else 'LIVE'}")
 

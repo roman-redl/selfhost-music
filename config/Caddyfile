@@ -1,6 +1,4 @@
 {$DOMAIN:music.yourdomain.duckdns.org} {
-    rate_limit {remote_host} 10r/s
-
     reverse_proxy navidrome:4533
 
     # Uncomment for Audiobookshelf (Stage 9)
