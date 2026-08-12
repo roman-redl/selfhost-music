@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 
 BASE_URL = "http://localhost:4533/rest"
 USER = os.environ.get("NAVIDROME_USER", "")
-PASS = os.environ.get("NAVIDROME_PASS", "")
+PASS = os.environ.get("NAVIDROME_PASSWORD", "") or os.environ.get("NAVIDROME_PASS", "")
 CLIENT = "import_script"
 
 M3U_DIR = sys.argv[1] if len(sys.argv) > 1 else "/opt/selfhost-music/music/_Playlists"
