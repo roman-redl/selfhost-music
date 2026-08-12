@@ -93,8 +93,9 @@ VPS (Oracle, PAYG):
    импорт плейлистов только через Subsonic API: `scripts/archive/import_playlists_api.py`.
 2. **`createPlaylist` принимает ОДИН `songId`** — передача списка молча теряет первый трек.
    Создавать с первым треком, остальные — `updatePlaylist` по одному.
-3. **Дубли плейлистов в Navidrome** — в `playlists_m3u/` жили пары `.m3u` с разным
-   написанием имени. Держать ровно 44 файла; после удаления дублей — rsync `--delete` + переимпорт.
+3. **Дубли плейлистов в Navidrome** — в `playlists_m3u/` (ныне `playlists/` в корне репо)
+   жили пары `.m3u` с разным написанием имени. Держать ровно один файл на плейлист;
+   после удаления дублей — rsync `--delete` + переимпорт.
 4. **search3 плохо работает с юникодом** (Cyrillic, decomposed) и даёт ложные срабатывания —
    матчить по локально собранному индексу всех песен с NFC-нормализацией.
 5. **Регистр артистов дробил их в Navidrome** (`Falco` vs `FALCO`) — правило каноничного регистра.
@@ -132,7 +133,7 @@ VPS (Oracle, PAYG):
     расходиться с тегами).
 18. **Читается только `*.m3u`** — и Navidrome, и `import_playlists_api.py` матчат строго по
     расширению `.m3u`. Файлы `.m3u.bak` (бэкапы от пересборки путей) нигде не читаются —
-    мусор, удалены (2026-08-13). Никаких `.bak` в `playlists_m3u/` не хранить.
+    мусор, удалены (2026-08-13). Никаких `.bak` в `playlists/` не хранить.
 
 ## Карта скриптов
 
@@ -141,6 +142,7 @@ VPS (Oracle, PAYG):
 | `scripts/watch-inbox.sh` | Автоимпорт: mv из инбокса → теги → обложка → Navidrome (systemd `music-watcher`) | Активный |
 | `scripts/get_cover.py` | Обложки MP3/FLAC: ручная → Deezer → iTunes → Cover Art Archive → Discogs → Bing; флаги `--force`, `--artist` | Активный |
 | `scripts/fix_tags.py` | Чинит Artist/Title/Album по имени файла (MP3+FLAC), `--dry-run`, `--limit` | Активный |
+| `scripts/export_tracklist.py` | Экспорт полного списка треков из Navidrome в TSV (`tracklist.tsv` в корне) | Активный |
 | `scripts/backup-to-cloud.sh` | Ночной бэкап `/music/` + `/data/` в Mail.ru WebDAV | Готов, **не активен** (нет пароля приложения) |
 | `scripts/setup-vps.sh` | Развёртывание VPS с нуля (Oracle ARM) | Для DR |
 | `scripts/duckdns.sh` | DDNS-обновление (на VPS работает сгенерированная копия `/opt/duckdns/duck.sh` по cron) | Справочный |
@@ -169,6 +171,8 @@ VPS (Oracle, PAYG):
   Репозиторий `/opt/selfhost-music/`, стек: caddy + navidrome (docker compose).
 - **Локальная копия библиотеки:** `MusicRaw/Library/Singletons/` на Mac — зеркало
   для массовых правок; после правок rsync на VPS + триггер скана.
+- **Канонические m3u:** `playlists/` в корне репозитория (версионируются в git);
+  снапшот коллекции — `tracklist.tsv` в корне (обновлять через `export_tracklist.py`).
 - **Логи:** watcher — `/var/log/music-import.log`; бэкапа — `/var/log/music-backup.log`.
 
 ## Disaster Recovery

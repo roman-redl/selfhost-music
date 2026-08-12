@@ -21,10 +21,12 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 2. Watcher всё делает сам: `fix_tags.py` (теги) → `get_cover.py` (обложка) → Navidrome. ~30 секунд.
 3. Ручная обложка: положить `Artist - Title.jpg`/`.png` тем же именем рядом в инбокс — высший приоритет. Удаляется только после успешного встраивания, иначе остаётся рядом с треком.
 4. Детали и флаги: `docs/howto-add-music-and-covers.md`.
+5. После массовых заливок обнови снапшот коллекции: на VPS `python3 scripts/export_tracklist.py > tracklist.tsv`, файл закоммить.
 
 ## Как добавить или обновить плейлист
 
-- Формат `.m3u`: строки `Singletons/Artist - Title.ext`, без дублей внутри файла.
+- Канонические `.m3u` живут в `playlists/` в корне репозитория (версионируются в git). Один файл = один плейлист.
+- Формат `.m3u`: строки `Singletons/Artist - Title.ext`, без дублей внутри файла, без `#EXTM3U`/`#EXTINF`.
 - **Автоимпорт m3u в Navidrome сломан** (баг «no admin users yet») — импортировать через Subsonic API: `scripts/archive/import_playlists_api.py` (NFC-матчинг по полному индексу, креды из env или `.env`). Не использовать «первый результат поиска».
 - Подробности: project-context.md, инциденты 1–4.
 
@@ -43,7 +45,9 @@ Self-hosted музыка: Navidrome на Oracle Cloud VPS + Caddy + автоим
 
 | Путь | Что это |
 |---|---|
-| `scripts/` | Операционные: `watch-inbox.sh` (watcher, systemd), `get_cover.py` (обложки MP3/FLAC), `fix_tags.py` (теги), `backup-to-cloud.sh` (бэкап, пока не активен), `setup-vps.sh` (развёртывание с нуля), `duckdns.sh` (справочный) |
+| `scripts/` | Операционные: `watch-inbox.sh` (watcher, systemd), `get_cover.py` (обложки MP3/FLAC), `fix_tags.py` (теги), `export_tracklist.py` (снапшот коллекции в TSV), `backup-to-cloud.sh` (бэкап, пока не активен), `setup-vps.sh` (развёртывание с нуля), `duckdns.sh` (справочный) |
+| `playlists/` | Канонические `.m3u` плейлистов (один файл = один плейлист, в git) |
+| `tracklist.tsv` | Снапшот полной коллекции из Navidrome (обновлять через `export_tracklist.py`) |
 | `scripts/archive/` | Одноразовые миграционные (этапы 3–6). Не использовать без понимания контекста |
 | `config/` | `Caddyfile` (домен через env `{$DOMAIN}`), `slskd.yml`, `music-watcher.service` |
 | `docs/` | `project-context.md` (правила/инциденты), `music-migration-plan.md` (хроника + будущее), `howto-add-music-and-covers.md`, `disaster-recovery.md`, `manual-fix-list.txt` |
