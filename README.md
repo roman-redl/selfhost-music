@@ -12,7 +12,7 @@ Navidrome on Oracle Cloud Free Tier, offline cache on all devices, automatic met
 | [Caddy](https://caddyserver.com/) | HTTPS reverse proxy, auto Let's Encrypt certificates |
 | [beets](https://beets.io/) | Metadata tagging, album art, folder structure |
 | [Syncthing](https://syncthing.net/) | P2P file sync — laptop ↔ VPS (Mac, Windows, Linux) |
-| [Supersonic](https://github.com/dweymouth/supersonic) | Desktop client with full offline cache (Mac/Win/Linux) |
+| [Psysonic](https://github.com/Psychotoxical/psysonic) | Desktop client with full offline cache (Mac/Win/Linux) |
 | [Substreamer](https://substreamerapp.com/) | Android client with offline cache |
 
 ## Hardware

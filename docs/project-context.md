@@ -23,7 +23,7 @@ VPS (Oracle, PAYG):
     └─ watcher (systemd, scripts/watch-inbox.sh):
          mv → /music/ → fix_tags.py (теги) → get_cover.py (обложка) → Navidrome подхватывает
   Бэкап: cron backup-to-cloud.sh → Mail.ru WebDAV (davfs2) — НЕ НАСТРОЕН
-Клиенты: Supersonic (Mac/Win), Substreamer (Android) — полный офлайн-кеш.
+Клиенты: Psysonic (Mac/Win), Substreamer (Android) — полный офлайн-кеш; Supersonic — запасной (инцидент 19).
 ```
 
 ## Правила (обязательные)
@@ -79,7 +79,7 @@ VPS (Oracle, PAYG):
 | Докачка | **slskd (Soulseek)**, потом web + VK extension | yt-dlp запрещён; хитрейт slskd 8% — только первый проход |
 | Загрузка файлов | Syncthing (ноутбук) + SFTP (телефон) | Navidrome не принимает файлы через API |
 | Доступ | Публичный HTTPS (Caddy + DuckDNS) | Нельзя сторонние VPN |
-| Десктоп-клиент | **Supersonic** (полный офлайн-кеш) | Feishin — кеш частичный; AIMP/Foobar — UI устарел |
+| Десктоп-клиент | **Psysonic** (офлайн-кеш с автосинком) | Supersonic — запасной (инцидент 19); Feishin — кеш частичный; AIMP/Foobar — UI устарел |
 | Android-клиент | **Substreamer** | Бесплатный, полный кеш, лучший UI |
 | Аудиокниги | **Audiobookshelf** (отдельный контейнер, Этап 9) | Navidrome не подходит для аудиокниг |
 
@@ -127,6 +127,7 @@ VPS (Oracle, PAYG):
     → `scripts/archive/slskd_download.py`. Нужен свежий список missing (сейчас его нет —
     по итогам этапа 5.5 missing = 0).
 16. **Клиентский кеш стареет** после обновлений сервера — выйти из аккаунта и зайти заново.
+    (Касается Supersonic; в Psysonic закреплённое офлайн синкается с сервером само.)
 17. **Два формата `.m3u`** (EXTM3U+EXTINF vs простые пути) — разные партии файлов собирались
     разными агентами. Унифицировано: все `.m3u` только простые пути `Singletons/Artist - Title.ext`,
     без `#EXTM3U`/`#EXTINF` (импорт работает и так, но EXTINF-названия — мёртвый груз, могут
@@ -134,6 +135,9 @@ VPS (Oracle, PAYG):
 18. **Читается только `*.m3u`** — и Navidrome, и `import_playlists_api.py` матчат строго по
     расширению `.m3u`. Файлы `.m3u.bak` (бэкапы от пересборки путей) нигде не читаются —
     мусор, удалены (2026-08-13). Никаких `.bak` в `playlists/` не хранить.
+19. **Десктоп-клиент сменён с Supersonic на Psysonic** (2026-08-15): навигация и иконки
+    Supersonic путали, кеш старел (инцидент 16). У Psysonic офлайн-кеш закреплённых
+    плейлистов/альбомов синкается сам. Supersonic остаётся запасным.
 
 ## Карта скриптов
 
