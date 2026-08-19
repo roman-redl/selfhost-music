@@ -16,6 +16,11 @@ services:
       ND_ENABLETRANSCODING: "true"
       ND_LOGLEVEL: info
       ND_PLAYLISTSPATH: /music/_Playlists
+      # Дефолт Navidrome 5 логинов/20с — защита для публичных серверов.
+      # У нас личный сервер: лимит душит клиентов при массовой перекачке
+      # обложек/синхронизации библиотеки. 1000/10с = практически без лимита.
+      ND_AUTHREQUESTLIMIT: "1000"
+      ND_AUTHWINDOWLENGTH: "10s"
 
   caddy:
     image: caddy:latest
