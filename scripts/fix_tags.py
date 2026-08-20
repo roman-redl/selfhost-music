@@ -5,7 +5,8 @@ fix_tags.py — Ensure Artist/Title/Album tags are present and valid.
 Implements the project's ID3 rules (docs/music-migration-plan.md):
   - Artist: from filename; forbidden: empty, "Неизвестен", "Unknown Artist"
   - Title:  from filename; forbidden: empty, "Без названия", artist name in title field
-  - Album:  = artist when unknown; forbidden: empty, "[Unknown Album]", "Unknown Album"
+  - Album:  = title (each track is its own album, decision 2026-08-21);
+             forbidden: empty, "[Unknown Album]", "Unknown Album"
 
 Existing valid values are never overwritten. Only missing/invalid tags are fixed.
 Supports MP3 (ID3v2) and FLAC (Vorbis comments); other formats are skipped.
@@ -121,9 +122,9 @@ def process_file(filepath, dry_run=False):
 
     album = get_tag(audio, "album", is_mp3)
     if not is_valid("album", album, f_artist):
-        changes.append(("album", album, f_artist))
+        changes.append(("album", album, f_title))
         if not dry_run:
-            set_tag(audio, "album", f_artist, is_mp3)
+            set_tag(audio, "album", f_title, is_mp3)
 
     if changes and not dry_run:
         try:
