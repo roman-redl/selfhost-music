@@ -37,5 +37,9 @@ MusicInbox/
 # Playlist snapshots exported from Navidrome (library-specific, machine-local)
 playlists/
 
+# Private operational context: incidents, library specifics, agents' journal.
+# Never publish — the public repo is a generic blueprint.
+docs/private/
+
 # Local library backups (13 GB, pulled from the VPS)
 backup-library-*/
