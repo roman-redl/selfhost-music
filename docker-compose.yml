@@ -1,0 +1,65 @@
+version: "3"
+
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    restart: unless-stopped
+    ports:
+      - "4533:4533"
+    volumes:
+      - "${NAVIDROME_DATA_DIR:-./data}:/data"
+      - "${MUSIC_DIR:-./music}:/music:ro"
+    environment:
+      ND_MUSICFOLDER: /music
+      ND_DATAFOLDER: /data
+      ND_SCANSCHEDULE: "1h"
+      ND_ENABLETRANSCODING: "true"
+      ND_LOGLEVEL: info
+      ND_PLAYLISTSPATH: /music/_Playlists
+      # Navidrome default is 5 logins / 20 s (brute-force protection for public servers).
+      # This is a private server: the default throttles clients during bulk cover
+      # downloads / library syncs. 1000/10 s ≈ effectively unlimited.
+      ND_AUTHREQUESTLIMIT: "1000"
+      ND_AUTHWINDOWLENGTH: "10s"
+
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Used by {$DOMAIN} placeholder in config/Caddyfile
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+
+  # Optional: Audiobookshelf (Stage 9)
+  # audiobookshelf:
+  #   image: ghcr.io/advplyr/audiobookshelf:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "13378:80"
+  #   volumes:
+  #     - ./audiobooks:/audiobooks
+  #     - ./abs-config:/config
+  #     - ./abs-metadata:/metadata
+
+  # Soulseek client for one-off gap filling. Disabled by default.
+  # To use: uncomment, `docker compose up -d slskd`, open the web UI on
+  # localhost:5030 over SSH.
+  # slskd:
+  #   image: slskd/slskd:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:5030:5030"     # Web UI + API (localhost only)
+  #   volumes:
+  #     - ./config/slskd.yml:/app/slskd.yml:ro
+  #     - ./slskd-data:/app
+  #     - ./music-inbox:/downloads
+  #   environment:
+  #     SLSKD_SLSK_USERNAME: ${SLSKD_USERNAME}
+  #     SLSKD_SLSK_PASSWORD: ${SLSKD_PASSWORD}
+  #     SLSKD_HTTP_PORT: 5030

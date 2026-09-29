@@ -1,0 +1,41 @@
+# Secrets
+.env
+secrets.txt
+
+# macOS
+.DS_Store
+
+# Music files (not source code)
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.wav
+
+# beets database
+*.db
+
+# IDE
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+
+# Docker volumes (created at runtime)
+data/
+music/
+music-inbox/
+caddy-data/
+caddy-config/
+MusicRaw/
+
+# Runtime data (not source code): cover-check workspace and Syncthing inbox
+covercheck/
+MusicInbox/
+
+# Playlist snapshots exported from Navidrome (library-specific, machine-local)
+playlists/
+
+# Local library backups (13 GB, pulled from the VPS)
+backup-library-*/
