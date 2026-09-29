@@ -78,3 +78,6 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
 - Full deployment from scratch: `docs/deployment.md`
 - Adding music and cover art: `docs/adding-music.md`
 - Recovering from a lost VPS: `docs/disaster-recovery.md`
+- **Machine-local private notes** (library specifics, incident journal — never published):
+  `docs/private/` is gitignored; if it exists, read it first — it overrides/refines
+  the generic rules above with operational context for this specific installation.
