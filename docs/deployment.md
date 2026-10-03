@@ -71,6 +71,10 @@ systemd service, and sets up the DuckDNS update cron.
    37 4 * * * bash /opt/selfhost-music/scripts/backup-to-cloud.sh
    ```
 
+   The VPS also runs an unrelated adjacent job at 04:11 (`/usr/local/bin/git-backup-to-cloud`,
+   mirrors of personal GitHub repos into the same WebDAV mount) — see
+   [architecture.md](architecture.md), "Backups". It is not installed by this repo.
+
 6. **First login** — open `https://$DOMAIN`, create the admin account, drop your first
    track into the inbox.
 

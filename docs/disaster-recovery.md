@@ -8,9 +8,12 @@ Nightly cron (`scripts/backup-to-cloud.sh`) syncs to WebDAV cloud storage:
 |---|---|---|---|
 | Music library | `/opt/selfhost-music/music/` | `selfhost-music/` (files at the root) | your library size |
 | Navidrome DB snapshot | SQLite backup API | `selfhost-music/navidrome-data/navidrome-snapshot.db` | ~10–50 MB |
+| GitHub repo mirrors | `/opt/git-backup/*.git` | `git-backup/` | ~330 MB |
 
 The snapshot contains playlists, favorites, users, play counts. The live WAL database and
-the regenerable cache are never copied.
+the regenerable cache are never copied. The repo mirrors (`--mirror` clones of all
+personal GitHub repos, the notes vault among them) are an adjacent backup; their
+authoritative source is GitHub itself.
 
 ## Recovery procedure
 
@@ -52,6 +55,13 @@ the regenerable cache are never copied.
    - `docker ps` — navidrome and caddy are up
    - `https://$DOMAIN` opens the web UI
    - Playlists / favorites / play counts are present (restored from the snapshot)
+
+5. **(Optional) repo mirrors** — the adjacent git-backup tenant is lost with the VPS and
+   is not re-created by the provisioning script. Re-create `/opt/git-backup` (`git clone
+   --mirror` per repo), reinstall `/usr/local/bin/git-backup-to-cloud` + the 04:11 cron
+   line if still wanted (see [architecture.md](architecture.md), "Backups"). If GitHub
+   itself is unreachable, recover a repo with
+   `git clone /mnt/mailru-backup/git-backup/<repo>.git`.
 
 **Expected time:** ~1 hour, dominated by downloading the library from the cloud.
 

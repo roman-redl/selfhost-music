@@ -30,6 +30,8 @@ VPS (Oracle Cloud free tier / any Ubuntu box):
     └─ watcher (systemd, scripts/watch-inbox.sh):
          mv → /music/ → fix_tags.py → get_cover.py → Navidrome picks it up
   Backup cron 04:37 → scripts/backup-to-cloud.sh → WebDAV (Mail.ru Cloud)
+  Git mirrors cron 04:11 → git-backup-to-cloud (VPS-local) → WebDAV /git-backup/ —
+    adjacent tenant: --mirror clones of all personal GitHub repos, not part of the stack
 ```
 
 ## Quick start
@@ -84,6 +86,10 @@ into `MusicInbox/` (see [docs/adding-music.md](docs/adding-music.md)).
 
 The live `navidrome.db` is never copied directly (WAL makes a naive copy inconsistent);
 the cache directory is excluded as it is regenerable.
+
+An adjacent nightly job (04:11, `git-backup-to-cloud`, lives on the VPS rather than in
+this repo) mirrors all personal GitHub repos — the notes vault included — into
+`<webdav-mount>/git-backup/`; see [docs/architecture.md](docs/architecture.md).
 
 ## License
 
