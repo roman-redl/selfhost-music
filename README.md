@@ -29,8 +29,8 @@ VPS (Oracle Cloud free tier / any Ubuntu box):
   /music-inbox/ — incoming files (Syncthing from laptop, SFTP from phone)
     └─ watcher (systemd, scripts/watch-inbox.sh):
          mv → /music/ → fix_tags.py → get_cover.py → Navidrome picks it up
-  Backup cron 04:37 → scripts/backup-to-cloud.sh → WebDAV (Mail.ru Cloud)
-  Git mirrors cron 04:11 → git-backup-to-cloud (VPS-local) → WebDAV /git-backup/ —
+  Backup cron 04:37 → scripts/backup-to-cloud.sh → WebDAV backup/ (Mail.ru Cloud)
+  Git mirrors cron 04:11 → git-backup-to-cloud (VPS-local) → WebDAV backup/git-backup/ —
     adjacent tenant: --mirror clones of all personal GitHub repos, not part of the stack
 ```
 
@@ -75,13 +75,15 @@ into `MusicInbox/` (see [docs/adding-music.md](docs/adding-music.md)).
 
 ## Backups
 
-`backup-to-cloud.sh` runs from cron (04:37 by default):
+`backup-to-cloud.sh` runs from cron (04:37 by default). Everything backup-related
+lives in one cloud folder — personal cloud folders are never touched:
 
 ```
-<webdav-mount>/selfhost-music/
+<webdav-mount>/backup/
 ├── <all music files>            # rsync --delete from /music/
-└── navidrome-data/
-    └── navidrome-snapshot.db    # consistent snapshot via the SQLite backup API
+├── navidrome-data/
+│   └── navidrome-snapshot.db    # consistent snapshot via the SQLite backup API
+└── git-backup/                  # mirrors of personal GitHub repos (adjacent 04:11 job)
 ```
 
 The live `navidrome.db` is never copied directly (WAL makes a naive copy inconsistent);
@@ -89,7 +91,7 @@ the cache directory is excluded as it is regenerable.
 
 An adjacent nightly job (04:11, `git-backup-to-cloud`, lives on the VPS rather than in
 this repo) mirrors all personal GitHub repos — the notes vault included — into
-`<webdav-mount>/git-backup/`; see [docs/architecture.md](docs/architecture.md).
+`<webdav-mount>/backup/git-backup/`; see [docs/architecture.md](docs/architecture.md).
 
 ## License
 

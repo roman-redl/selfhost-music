@@ -5,7 +5,7 @@
 set -e
 
 WEBDAV_MOUNT="/mnt/mailru-backup"
-BACKUP_ROOT="$WEBDAV_MOUNT/selfhost-music"   # dedicated dir; personal cloud folders are never touched
+BACKUP_ROOT="$WEBDAV_MOUNT/backup"             # единая папка всех бэкапов; личные папки облака не трогаем
 LOCKFILE="/var/lock/music-backup.lock"
 LOGFILE="/var/log/music-backup.log"
 
@@ -22,11 +22,13 @@ if ! mountpoint -q "$WEBDAV_MOUNT"; then
 fi
 mkdir -p "$BACKUP_ROOT"
 
-# Backup music files (directly into selfhost-music/ root — no extra nesting)
+# Backup music files (directly into backup/ root — no extra nesting)
 # --inplace: davfs2 (Mail.ru WebDAV) fails rsync's temp-file + rename dance
 # with I/O error 5; in-place writes avoid the rename entirely.
+# --exclude git-backup: рядом в backup/ лежат зеркала репозиториев (крон 04:11),
+# их --delete музыкального прохода касаться не должен.
 log "Syncing music..."
-rsync -a --delete --inplace --exclude 'navidrome-data' --exclude 'Аудиокниги' \
+rsync -a --delete --inplace --exclude 'navidrome-data' --exclude 'git-backup' --exclude 'Аудиокниги' \
     /opt/selfhost-music/music/ "$BACKUP_ROOT/" >> "$LOGFILE" 2>&1
 log "Music sync done."
 

@@ -98,18 +98,22 @@ account for the sign when parsing.
 ## Backups
 
 - Nightly cron → `backup-to-cloud.sh`: rsync `--delete` of `/music/` into
-  `<mount>/selfhost-music/` (music files at the root, no extra nesting) plus
+  `<mount>/backup/` (music files at the root, no extra nesting) plus
   `navidrome-data/` with a **consistent DB snapshot** (SQLite backup API).
   The live WAL database and the regenerable cache directory are excluded; rsync gets
-  `--exclude navidrome-data` so `--delete` on the music pass cannot remove it.
+  `--exclude navidrome-data` (and `--exclude git-backup` for the adjacent mirrors)
+  so `--delete` on the music pass cannot remove them.
 - Separate nightly cron 04:11 → `/usr/local/bin/git-backup-to-cloud` (VPS-local, not in
   this repo): `git fetch` in `/opt/git-backup/*.git` — `--mirror` clones of all personal
-  GitHub repos (the notes vault among them) — then rsync into `<mount>/git-backup/`.
+  GitHub repos (the notes vault among them) — then rsync into `<mount>/backup/git-backup/`.
   Adjacent tenant, not part of the music stack; shares only the VPS and the davfs mount.
   Restore: `git clone /opt/git-backup/<repo>.git` or the cloud copy.
 - davfs2 quirks with Mail.ru WebDAV: needs `use_locks 0` and, on Linux ≥ 6.16,
   `buf_size 64` in `/etc/davfs2/davfs2.conf`, otherwise directory listing fails with
-  `Invalid argument` while read/write still work.
+  `Invalid argument` while read/write still work. Renaming/moving cloud folders via
+  `mv` on the mount fails with `Permission denied` — use a direct WebDAV `MOVE`
+  (curl, creds from `/etc/davfs2/secrets`): returns 201, moves server-side
+  without re-uploading (2026-10-05).
 - Deleting thousands of files over WebDAV is extremely slow (one DELETE per request) —
   prefer removing whole folders from the cloud's web UI. A bulk `rm -rf` through the
   davfs mount can also *hang* with `Resource temporarily unavailable` — kill the rm,

@@ -6,9 +6,9 @@ Nightly cron (`scripts/backup-to-cloud.sh`) syncs to WebDAV cloud storage:
 
 | Data | VPS path | Cloud path | Size |
 |---|---|---|---|
-| Music library | `/opt/selfhost-music/music/` | `selfhost-music/` (files at the root) | your library size |
-| Navidrome DB snapshot | SQLite backup API | `selfhost-music/navidrome-data/navidrome-snapshot.db` | ~10–50 MB |
-| GitHub repo mirrors | `/opt/git-backup/*.git` | `git-backup/` | ~330 MB |
+| Music library | `/opt/selfhost-music/music/` | `backup/` (files at the root) | your library size |
+| Navidrome DB snapshot | SQLite backup API | `backup/navidrome-data/navidrome-snapshot.db` | ~10–50 MB |
+| GitHub repo mirrors | `/opt/git-backup/*.git` | `backup/git-backup/` | ~330 MB |
 
 The snapshot contains playlists, favorites, users, play counts. The live WAL database and
 the regenerable cache are never copied. The repo mirrors (`--mirror` clones of all
@@ -43,9 +43,9 @@ authoritative source is GitHub itself.
 3. **Restore the library and the database**
 
    ```bash
-   sudo rsync -a /mnt/mailru-backup/selfhost-music/ /opt/selfhost-music/music/
+   sudo rsync -a /mnt/mailru-backup/backup/ /opt/selfhost-music/music/
    sudo systemctl stop docker  # or: docker stop the navidrome container
-   sudo cp /mnt/mailru-backup/selfhost-music/navidrome-data/navidrome-snapshot.db \
+   sudo cp /mnt/mailru-backup/backup/navidrome-data/navidrome-snapshot.db \
            /opt/selfhost-music/data/navidrome.db
    sudo systemctl start docker
    ```
@@ -61,7 +61,7 @@ authoritative source is GitHub itself.
    --mirror` per repo), reinstall `/usr/local/bin/git-backup-to-cloud` + the 04:11 cron
    line if still wanted (see [architecture.md](architecture.md), "Backups"). If GitHub
    itself is unreachable, recover a repo with
-   `git clone /mnt/mailru-backup/git-backup/<repo>.git`.
+   `git clone /mnt/mailru-backup/backup/git-backup/<repo>.git`.
 
 **Expected time:** ~1 hour, dominated by downloading the library from the cloud.
 
@@ -71,8 +71,8 @@ Once a month, check that the cloud mounts and reads:
 
 ```bash
 sudo mount /mnt/mailru-backup
-ls /mnt/mailru-backup/selfhost-music/ | head
-ls -la /mnt/mailru-backup/selfhost-music/navidrome-data/
+ls /mnt/mailru-backup/backup/ | head
+ls -la /mnt/mailru-backup/backup/navidrome-data/
 ```
 
 Also keep an occasional **local** copy of the library + snapshot on your own machine
