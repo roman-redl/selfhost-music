@@ -6,13 +6,16 @@ rules that came out of it).
 ## The system at a glance
 
 ```text
-                             ┌─ VPS (Oracle ARM) ───────────────────────────┐
-┌────────────┐               │ ┌─────────────────┐                         │
-│ MusicInbox │──Syncthing───►│ │ /music-inbox/   │                         │
-│   (Mac)    │               │ │ music-watcher:  │                         │
-└────────────┘               │ │ mv · fix_tags · │                         │
-  ┌───────┐                  │ │ get_cover.py    │                         │
-  │ Phone │──SFTP───────────►│ │ (systemd)       │                         │
+                                                         ┌────────────────┐
+                                                         │v2rayN · v2rayNG│
+                                                         └────────┬───────┘
+                             ┌─ VPS (Oracle ARM) ─────────────────┼────────┐
+┌────────────┐               │ ┌─────────────────┐                │        │
+│ MusicInbox │──Syncthing───►│ │ /music-inbox/   │      ┌─────────┴────┐   │
+│   (Mac)    │               │ │ music-watcher:  │      │  Xray VPN    │   │
+└────────────┘               │ │ mv · fix_tags · │      │ VLESS+REALITY│   │
+  ┌───────┐                  │ │ get_cover.py    │      │    :8443     │   │
+  │ Phone │──SFTP───────────►│ │ (systemd)       │      └──────────────┘   │
   └───────┘                  │ └────────┬────────┘                         │
                              │          │                                  │
                              │     ┌─────────┐           ┌───────────────┐ │
@@ -59,6 +62,7 @@ deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS
 | **davfs2 → Mail.ru WebDAV** | Backup target mounted on the VPS; nightly rsync lands in `<mount>/backup/` |
 | **GitHub** | Deploy source: the VPS checkout pulls `--ff-only`; nothing is edited on the VPS by hand |
 | **cron** | Nightly WebDAV backups: music 04:37, GitHub repo mirrors 04:11 |
+| **Xray VPN** (adjacent tenant) | Personal VPN on the same VPS: VLESS + REALITY on :8443, same `$DOMAIN`; clients v2rayN (Windows) / v2rayNG (Android); see the private `redl-vpn` repo |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
 
 ## Library conventions
