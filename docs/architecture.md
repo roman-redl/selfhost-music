@@ -3,6 +3,49 @@
 Design decisions, library conventions, and operational lessons (what bit us and the
 rules that came out of it).
 
+## The system at a glance
+
+```text
+                             ┌─ VPS (Oracle ARM) ───────────────────────────┐
+┌────────────┐               │ ┌─────────────────┐                         │
+│ MusicInbox │──Syncthing───►│ │ /music-inbox/   │                         │
+│   (Mac)    │               │ │ music-watcher:  │                         │
+└────────────┘               │ │ mv · fix_tags · │                         │
+  ┌───────┐                  │ │ get_cover.py    │                         │
+  │ Phone │──SFTP───────────►│ │ (systemd)       │                         │
+  └───────┘                  │ └────────┬────────┘                         │
+                             │          │                                  │
+                             │     ┌─────────┐           ┌───────────────┐ │
+                             │     │ /music/ │─read-only►│   Navidrome   │ │
+                             │     └─────────┘           │     :4533     │ │
+                             │  ┌──────────┐             │ (Subsonic API)│ │
+                             │  │  /data/  │──owns──────►│               │ │
+                             │  │ (SQLite) │             └───────┬───────┘ │
+                             │  └──────────┘                     │ proxy   │
+                             │                                   v         │
+ ┌──────────┐                │                           ┌───────────────┐ │
+ │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │ │
+ └──────────┘                │                           └───────┬───────┘ │
+                             │                                   │         │
+                             │ ┌──────────────┐ ┌──────────────┐ │         │
+                             │ │ cron 04:37   │ │ cron 04:11   │ │         │
+                             │ │ music backup │ │ git mirrors  │ │         │
+                             │ └──────┬───────┘ └──────┬───────┘ │         │
+                             └────────┼────────────────┼─────────┼─────────┘
+                                      │ rsync (davfs2) │         │ HTTPS · Subsonic API
+                             ┌───────────────────────────┐       │
+                             │  Mail.ru WebDAV (davfs2)  │       │
+                             │ backup/ (music + mirrors) │       │
+                             └───────────────────────────┘       v
+                                                      ┌───────────────────────┐
+                                                      │ Psysonic (desktop)    │
+                                                      │ Substreamer (Android) │
+                                                      │ Supersonic (spare)    │
+                                                      └───────────────────────┘
+
+deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
+```
+
 ## Components
 
 | Component | Role |
@@ -12,6 +55,9 @@ rules that came out of it).
 | **music-watcher** (systemd) | Import pipeline for `/music-inbox/`: move → fix tags → fetch cover |
 | **Syncthing** | Laptop `MusicInbox/` → VPS inbox |
 | **SFTP** | Phone → VPS inbox (any SSH/SFTP file manager) |
+| **DuckDNS** (cron `/opt/duckdns/duck.sh`) | Public name `$DOMAIN`; keeps the VPS IP current |
+| **davfs2 → Mail.ru WebDAV** | Backup target mounted on the VPS; nightly rsync lands in `<mount>/backup/` |
+| **GitHub** | Deploy source: the VPS checkout pulls `--ff-only`; nothing is edited on the VPS by hand |
 | **cron** | Nightly WebDAV backups: music 04:37, GitHub repo mirrors 04:11 |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
 
