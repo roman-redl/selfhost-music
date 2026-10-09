@@ -96,3 +96,22 @@ Trigger a scan:
 curl -s -X POST "http://localhost:4533/rest/startScan?u=$NAVIDROME_USER& \
 p=$(python3 -c 'import urllib.parse,os;print(urllib.parse.quote(os.environ["NAVIDROME_PASSWORD"],safe=""))')&v=1.16.1&c=maint"
 ```
+
+## Artist images (point fixes)
+
+Artist pictures normally come from the server's external lookup (Deezer) and are
+displayed by Psysonic and other clients — no setup needed. When the match is wrong
+or ugly, set a specific picture (runs from the repo root on the Mac or on the VPS):
+
+```bash
+python3 scripts/set_artist_images.py --artist "ABBA" --file ~/Downloads/pic.jpg
+```
+
+- The picture applies server-side for **all clients at once**.
+- JPEG/PNG are uploaded as-is; webp/heic/avif are auto-converted (ffmpeg on the
+  VPS, sips on macOS) — the server accepts JPEG/PNG only.
+- `--from-track` takes the artist's own track cover instead of a file;
+  `--dry-run` shows the plan.
+- Why not upload right in Psysonic: its button hits the same server endpoint but
+  sends the file as-is, so a webp/heic fails with "Uploaded file is not a valid
+  image" (and a silent client-side "success" changes nothing on the server).
