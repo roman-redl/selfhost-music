@@ -45,8 +45,11 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
 2. The watcher does the rest: `fix_tags.py` → `get_cover.py` → Navidrome. ~30 seconds.
 3. A manual cover: put `Artist - Title.jpg|png` with the same name next to the track —
    highest priority, embedded automatically.
-4. Details: [docs/adding-music.md](docs/adding-music.md).
-5. After bulk imports, refresh the collection snapshot: on the VPS run
+4. Artist images come from Deezer by default; for a point fix run
+   `python3 scripts/set_artist_images.py --artist "Name" --file pic.jpg` (webp/heic
+   auto-converts; Psysonic's own upload button rejects them).
+5. Details: [docs/adding-music.md](docs/adding-music.md).
+6. After bulk imports, refresh the collection snapshot: on the VPS run
    `python3 scripts/export_tracklist.py > playlists/tracklist.csv` (path is local-only,
    gitignored).
 
