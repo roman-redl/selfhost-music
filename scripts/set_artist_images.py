@@ -1,26 +1,33 @@
 #!/usr/bin/env python3
-"""Set Navidrome artist images from the artists' own track covers.
+"""Set Navidrome artist images: from a local picture file or from the artist's
+own track cover.
 
-Every artist gets the embedded cover of their alphabetically-first album's
-first track, uploaded through the native API (POST /api/artist/{id}/image).
-An uploaded image overrides the external lookups (Deezer / last.fm), so all
-clients show the artist's own artwork instead of a possibly wrong internet
-match.
+The default source for artist images is the server's external lookup (Deezer),
+which Psysonic and other clients display — usually good, occasionally the
+wrong artist. Use this script for point fixes:
 
-Run on the machine that can reach the Navidrome port (the VPS itself or over
-SSH); credentials come from .env (NAVIDROME_USER / NAVIDROME_PASSWORD,
-optionally NAVIDROME_URL, default http://127.0.0.1:4533).
+    # a specific picture (JPEG/PNG as-is; webp/heic/avif auto-converted):
+    python3 scripts/set_artist_images.py --artist "ABBA" --file pic.jpg
+    # from the artist's own track cover (their alphabetically-first album):
+    python3 scripts/set_artist_images.py --artist "Boston" --from-track
 
-Usage:
-    python3 scripts/set_artist_images.py --dry-run          # plan only
-    python3 scripts/set_artist_images.py --artist "ABBA"    # selected artists
-    python3 scripts/set_artist_images.py --all              # every artist
+Runs from the repo root on the Mac (uploads over https://$DOMAIN) or on the
+VPS (localhost). Credentials come from .env (NAVIDROME_USER /
+NAVIDROME_PASSWORD; NAVIDROME_URL overrides, DOMAIN is used otherwise).
+
+Notes: the server accepts JPEG/PNG only — anything else is converted with
+ffmpeg or sips (macOS). Psysonic's own "set artist image" button hits the
+same endpoint but does not convert, so a webp/heic upload fails there with
+"Uploaded file is not a valid image".
 """
 import argparse
 import hashlib
 import json
 import secrets
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import unicodedata
 import urllib.error
@@ -80,13 +87,13 @@ class Client:
             headers={"Content-Type": "application/json"}, method="POST")))
         self.bearer = resp["token"]
 
-    def upload_artist_image(self, artist_id, image: bytes):
+    def upload_artist_image(self, artist_id, image: bytes, mime="image/jpeg"):
         if self.bearer is None:
             self.login()
         boundary = uuid_hex()
         body = (
             f"--{boundary}\r\nContent-Disposition: form-data; name=\"image\"; "
-            f"filename=\"artist.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n"
+            f"filename=\"artist.{mime.split('/')[-1]}\"\r\nContent-Type: {mime}\r\n\r\n"
         ).encode() + image + f"\r\n--{boundary}--\r\n".encode()
         req = urllib.request.Request(
             f"{self.base}/api/artist/{artist_id}/image", data=body,
@@ -99,6 +106,32 @@ class Client:
 
 def uuid_hex():
     return secrets.token_hex(16)
+
+
+def read_image(path):
+    """Read an image file, converting to JPEG when the server cannot take it.
+
+    Navidrome accepts JPEG/PNG; webp/heic/avif and friends are converted via
+    ffmpeg (Linux/VPS) or sips (macOS).
+    """
+    data = Path(path).expanduser().read_bytes()
+    if data[:3] == b"\xff\xd8\xff":
+        return data, "image/jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return data, "image/png"
+    out = Path(tempfile.mkstemp(suffix=".jpg")[1])
+    try:
+        if shutil.which("ffmpeg"):
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(path),
+                            "-frames:v", "1", str(out)], check=True)
+        elif shutil.which("sips"):
+            subprocess.run(["sips", "-s", "format", "jpeg", str(path),
+                            "--out", str(out)], check=True, capture_output=True)
+        else:
+            sys.exit(f"{path}: not a JPEG/PNG and no ffmpeg/sips found to convert")
+        return out.read_bytes(), "image/jpeg"
+    finally:
+        out.unlink(missing_ok=True)
 
 
 def pick_track_cover(client, artist_id):
@@ -119,10 +152,16 @@ def pick_track_cover(client, artist_id):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--artist", action="append", default=[],
-                    help="artist name (repeatable); default: all artists")
-    ap.add_argument("--all", action="store_true", help="process every artist")
+                    help="artist name (repeatable)")
+    source = ap.add_mutually_exclusive_group()
+    source.add_argument("--file", metavar="PATH",
+                        help="set the image from this local file (one artist)")
+    source.add_argument("--from-track", action="store_true",
+                        help="set the image from the artist's own track cover")
+    source.add_argument("--all", action="store_true",
+                        help="with --from-track: process every artist")
     ap.add_argument("--dry-run", action="store_true",
-                    help="show the chosen source track, upload nothing")
+                    help="show what would be done, upload nothing")
     ap.add_argument("--sleep", type=float, default=0.1,
                     help="pause between uploads, seconds (default 0.1)")
     args = ap.parse_args()
@@ -132,13 +171,16 @@ def main():
     password = env.get("NAVIDROME_PASSWORD")
     if not user or not password:
         sys.exit("NAVIDROME_USER / NAVIDROME_PASSWORD not found in .env")
-    client = Client(env.get("NAVIDROME_URL", "http://127.0.0.1:4533"), user, password)
+    base = (env.get("NAVIDROME_URL")
+            or (f"https://{env['DOMAIN']}" if env.get("DOMAIN") else None)
+            or "http://127.0.0.1:4533")
+    client = Client(base, user, password)
 
     wanted = {unicodedata.normalize("NFC", a).casefold() for a in args.artist}
-    if wanted and not args.all:
-        pass  # selected artists only
-    elif not args.all and not wanted:
-        sys.exit("nothing to do: pass --artist NAME and/or --all")
+    if args.file and not wanted:
+        sys.exit("--file needs exactly one --artist")
+    if not args.file and not args.from_track and not args.all:
+        sys.exit("pick a source: --file PATH or --from-track (--artist NAME / --all)")
 
     index = client.subsonic("getArtists")["artists"]["index"]
     artists = [a for letter in index for a in letter.get("artist", [])]
@@ -150,26 +192,47 @@ def main():
         if missing:
             sys.exit(f"artists not found on the server: {sorted(missing)}")
 
-    print(f"artists to process: {len(artists)}")
+    print(f"artists to process: {len(artists)} ({base})")
     done = failed = 0
     for artist in artists:
+        name = artist["name"]
+        if args.file:
+            try:
+                data, mime = read_image(args.file)
+            except SystemExit:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                print(f"FAIL {name!r}: {exc}"); failed += 1; continue
+            if args.dry_run:
+                print(f"would set {name!r} <- {args.file} "
+                      f"({len(data)} bytes, {mime})")
+                continue
+            try:
+                client.upload_artist_image(artist["id"], data, mime)
+                done += 1
+                print(f"OK {name!r} <- {args.file}")
+            except Exception as exc:  # noqa: BLE001
+                failed += 1
+                print(f"FAIL {name!r}: {exc}")
+            time.sleep(args.sleep)
+            continue
+
         picked = pick_track_cover(client, artist["id"])
         if picked is None:
-            print(f"SKIP {artist['name']!r}: no track cover found")
+            print(f"SKIP {name!r}: no track cover found")
             failed += 1
             continue
         album, title, data = picked
         if args.dry_run:
-            print(f"would set {artist['name']!r} <- [{album}] {title} "
-                  f"({len(data)} bytes)")
+            print(f"would set {name!r} <- [{album}] {title} ({len(data)} bytes)")
             continue
         try:
             client.upload_artist_image(artist["id"], data)
             done += 1
-            print(f"OK {artist['name']!r} <- [{album}] {title}")
-        except Exception as exc:  # noqa: BLE001 — one artist must not kill the run
+            print(f"OK {name!r} <- [{album}] {title}")
+        except Exception as exc:  # noqa: BLE001
             failed += 1
-            print(f"FAIL {artist['name']!r}: {exc}")
+            print(f"FAIL {name!r}: {exc}")
         time.sleep(args.sleep)
     if not args.dry_run:
         print(f"done: {done}, failed/skipped: {failed}")
