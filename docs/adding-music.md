@@ -134,6 +134,14 @@ DB. On the Mac there is a helper that resolves names to ids and clears the cache
 bash docs/private/psysonic-uncache.sh "ABBA" "Boston"
 ```
 
+Why the full cycle matters: an upload alone does not advance the server's
+`getArtists.lastModified`, so clients that gate artist re-syncs on it (Psysonic)
+keep rendering their built-in placeholder in the artist-page avatar slot — the
+same surreal illustration for every artist. The script triggers a scan after
+uploading, which bumps the timestamp; then Psysonic picks the artist up on its
+next poll/restart. On the desktop also clear the artist's cache folder (the
+helper above); the phone re-fetches on its own.
+
 Note: artists with **no** server-side image make Psysonic improvise its own
 internet lookup — that is where the occasional no-name/wrong pictures come from.
 A point-fix upload (above) for such artists fixes it everywhere.
