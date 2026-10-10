@@ -234,6 +234,16 @@ def main():
             failed += 1
             print(f"FAIL {name!r}: {exc}")
         time.sleep(args.sleep)
+    if not args.dry_run and done:
+        # Artist-image uploads do not advance getArtists.lastModified by
+        # themselves; without a scan clients that gate on it (Psysonic's
+        # artist avatars) never re-sync and keep showing their placeholder.
+        try:
+            client.subsonic("startScan")
+            print("scan triggered (bumps getArtists.lastModified -> "
+                  "clients re-sync artist avatars)")
+        except Exception as exc:  # noqa: BLE001
+            print(f"WARN: scan not triggered: {exc}")
     if not args.dry_run:
         print(f"done: {done}, failed/skipped: {failed}")
 
