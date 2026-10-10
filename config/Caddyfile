@@ -1,4 +1,8 @@
 {$DOMAIN:music.yourdomain.duckdns.org} {
+    # Access log (JSON to stdout → docker logs) — debugging client cover-art
+    # requests. Remove when the artist-artwork mystery is solved.
+    log
+
     reverse_proxy navidrome:4533
 
     # Uncomment for Audiobookshelf (Stage 9)
