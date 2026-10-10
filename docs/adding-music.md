@@ -115,3 +115,26 @@ python3 scripts/set_artist_images.py --artist "ABBA" --file ~/Downloads/pic.jpg
 - Why not upload right in Psysonic: its button hits the same server endpoint but
   sends the file as-is, so a webp/heic fails with "Uploaded file is not a valid
   image" (and a silent client-side "success" changes nothing on the server).
+
+### Refreshing one artist in Psysonic
+
+Psysonic caches images per artist id on disk and will keep showing the old picture
+after a server-side change (the phone updates, the desktop does not). No full
+logout/cache reset needed — delete just that artist's cache folder; Psysonic
+refetches it on next render (restart the app if it was running):
+
+```
+~/Library/Application Support/dev.psysonic.player/cover-cache/<server-domain>/artist/<artist-id>/
+```
+
+The artist id is visible in the Navidrome web UI (the artist page URL) or in the
+DB. On the Mac there is a helper that resolves names to ids and clears the cache:
+
+```bash
+bash docs/private/psysonic-uncache.sh "ABBA" "Boston"
+```
+
+Note: artists with **no** server-side image make Psysonic improvise its own
+internet lookup — that is where the occasional no-name/wrong pictures come from.
+A point-fix upload (above) for such artists fixes it everywhere.
+
