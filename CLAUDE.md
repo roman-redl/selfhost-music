@@ -108,5 +108,8 @@ hand off context, not transcripts.
   mechanism is wired globally via the user-level `~/.claude/CLAUDE.md`, so
   agents know about it from any launch location. The picking-up agent starts
   from that file — cheaper and more reliable than resuming a foreign transcript.
+  Pick files by NAME first (`ls handoff/sessions/`, name = date-project-topic),
+  never bulk-read sessions/; when a task is closed, delete its session file
+  (git keeps the history).
 - **Never** put API keys into handoff. The proxy password is the only allowed
   secret there (ACL-limited; rotation procedure in `handoff/claude-api-wrappers.md`).
