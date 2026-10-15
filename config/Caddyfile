@@ -2,6 +2,8 @@
 	# CONNECT requests must reach forward_proxy before the site handler,
 	# otherwise they fall through to reverse_proxy
 	order forward_proxy first
+	# TEMP: verbose logs to diagnose upstream dial failures (remove after)
+	debug
 }
 
 {$DOMAIN:music.yourdomain.duckdns.org} {
