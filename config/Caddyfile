@@ -2,15 +2,25 @@
 	# CONNECT requests must reach forward_proxy before the site handler,
 	# otherwise they fall through to reverse_proxy
 	order forward_proxy first
-	# TEMP: verbose logs to diagnose upstream dial failures (remove after)
+	# TEMP: verbose logs to diagnose forward proxy issues (remove after)
 	debug
 }
 
 {$DOMAIN:music.yourdomain.duckdns.org} {
-	# Authenticated CONNECT proxy on :443 for personal API routing
-	# (Claude Code → Anthropic). Credentials come from .env via compose,
-	# never from git. Unauthenticated proxy probes get the normal site
-	# response (probe_resistance); the ACL only lets anthropic through.
+    reverse_proxy navidrome:4533
+
+    # Uncomment for Audiobookshelf (Stage 9)
+    # handle_path /abs/* {
+    #     reverse_proxy audiobookshelf:80
+    # }
+}
+
+# Catch-all on :443 for the forward proxy. A proxied request carries the
+# TARGET host (api.anthropic.com), which never matches the named music site
+# above — without this block Caddy answers it with a bare empty 200 and the
+# plugin is never reached. Unauthenticated probes fall through to Caddy's
+# empty response (probe_resistance); credentials come from .env via compose.
+:443 {
 	forward_proxy {
 		basic_auth {$PROXY_USER} {$PROXY_PASSWORD}
 		ports 443
@@ -23,11 +33,4 @@
 			deny all
 		}
 	}
-
-	reverse_proxy navidrome:4533
-
-	# Uncomment for Audiobookshelf (Stage 9)
-	# handle_path /abs/* {
-	#     reverse_proxy audiobookshelf:80
-	# }
 }
