@@ -18,21 +18,64 @@ all on a single free-tier VPS.
   to Mail.ru Cloud over WebDAV (any WebDAV endpoint works with minor tweaks).
 - **Disaster recovery in ~1 hour:** one script re-provisions the VPS, backups restore
   the library and the database (playlists, favorites, play counts).
+- **Authenticated forward proxy on :443** (same Caddy): personal API traffic
+  (e.g. Claude Code → Anthropic) exits from the VPS through an HTTPS CONNECT
+  tunnel — probe-resistant, ACL-limited, credentials in `.env`.
 
 ## Architecture
 
+```text
+                                                         ┌────────────────┐
+                                                         │v2rayN · v2rayNG│
+                                                         └────────┬───────┘
+                             ┌─ VPS (Oracle ARM) ─────────────────┼────────┐
+┌────────────┐               │ ┌─────────────────┐                │        │
+│ MusicInbox │──Syncthing───►│ │ /music-inbox/   │      ┌─────────┴────┐   │
+│   (Mac)    │               │ │ music-watcher:  │      │  Xray VPN    │   │
+└────────────┘               │ │ mv · fix_tags · │      │ VLESS+REALITY│   │
+  ┌───────┐                  │ │ get_cover.py    │      │    :8443     │   │
+  │ Phone │──SFTP───────────►│ │ (systemd)       │      └──────────────┘   │
+  └───────┘                  │ └────────┬────────┘                         │
+                             │          │                                  │
+                             │     ┌─────────┐           ┌───────────────┐ │
+                             │     │ /music/ │─read-only►│   Navidrome   │ │
+                             │     └─────────┘           │     :4533     │ │
+                             │  ┌──────────┐             │ (Subsonic API)│ │
+                             │  │  /data/  │──owns──────►│               │ │
+                             │  └──────────┘             └───────┬───────┘ │
+                             │                                   │ proxy   │
+                             │                                   v         │
+ ┌──────────┐                │                           ┌───────────────┐ │
+ │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │ │
+ └──────────┘                │                           │ rev·fwd proxy │ │
+                             │                           └───────┬───────┘ │
+                             │                                   │         │
+                             │ ┌──────────────┐ ┌──────────────┐ │         │
+                             │ │ cron 04:37   │ │ cron 04:11   │ │         │
+                             │ │ music backup │ │ git mirrors  │ │         │
+                             │ └──────┬───────┘ └──────┬───────┘ │         │
+                             └────────┼────────────────┼─────────┼─────────┘
+                                      │ rsync (davfs2) │         │ HTTPS · Subsonic API
+                             ┌───────────────────────────┐       │
+                             │  Mail.ru WebDAV (davfs2)  │       │
+                             │ backup/ (music + mirrors) │       │
+                             └───────────────────────────┘       v
+                                                      ┌───────────────────────┐
+                                                      │ Psysonic (desktop)    │
+                                                      │ Substreamer (Android) │
+                                                      │ Supersonic (spare)    │
+                                                      └───────────────────────┘
+
+deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
+
+personal API routing (same Caddy, same :443):
+  claude-api (work Mac) ──┐
+  claude-api.cmd (Win)  ──┴── HTTPS CONNECT (basic auth, probe-resistant,
+                               ACL anthropic-only) ──► Caddy :443 ──► api.anthropic.com
+  end-to-end TLS inside the tunnel — Anthropic only ever sees the VPS address
 ```
-VPS (Oracle Cloud free tier / any Ubuntu box):
-  Caddy :443 (HTTPS, domain from {$DOMAIN})
-    └─ Navidrome :4533 (Subsonic API)
-         reads /music/ (read-only), DB in /data/
-  /music-inbox/ — incoming files (Syncthing from laptop, SFTP from phone)
-    └─ watcher (systemd, scripts/watch-inbox.sh):
-         mv → /music/ → fix_tags.py → get_cover.py → Navidrome picks it up
-  Backup cron 04:37 → scripts/backup-to-cloud.sh → WebDAV backup/ (Mail.ru Cloud)
-  Git mirrors cron 04:11 → git-backup-to-cloud (VPS-local) → WebDAV backup/git-backup/ —
-    adjacent tenant: --mirror clones of all personal GitHub repos, not part of the stack
-```
+
+Details, rules and operational lessons: [docs/architecture.md](docs/architecture.md).
 
 ## Quick start
 
@@ -42,10 +85,10 @@ curl -sSL https://raw.githubusercontent.com/roman-redl/selfhost-music/main/scrip
   bash -s -- <duckdns-token> <duckdns-subdomain>
 
 # 2. Configure secrets
-cp .env.example .env   # fill in DOMAIN, Navidrome user/password, backup creds
+cp .env.example .env   # fill in DOMAIN, Navidrome user/password, proxy auth, backup creds
 
-# 3. Bring the stack up
-docker compose up -d
+# 3. Bring the stack up (first run builds the Caddy image with the forwardproxy plugin)
+docker compose up -d --build
 ```
 
 Then open `https://your-domain`, create the admin user, and drop your first track
