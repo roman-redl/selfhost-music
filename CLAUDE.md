@@ -97,5 +97,5 @@ public one. Private docs (incident journal, claude-api instructions, playlist
 snapshots) live there; read `handoff/project-context.md` first when present —
 it overrides generic rules. Cross-machine session handoffs (any personal
 project) live in `handoff/sessions/`: written ONLY on explicit request via the
-`/my-handoff` skill (read rules and lifecycle: `~/personal-projects/CLAUDE.md`).
+`/handoff` skill (read rules and lifecycle: `~/personal-projects/CLAUDE.md`).
 Never put API keys there (proxy password is fine).
