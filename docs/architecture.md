@@ -73,8 +73,12 @@ same :443 as the music site. Purpose: routing personal API traffic (Claude Code 
 Anthropic) through the VPS, so API credentials never originate from a home/corporate
 IP — Anthropic only ever sees the VPS address. Design points:
 
-- Same domain and port as Navidrome → no extra firewall/DNS surface; proxy probes
-  without credentials get the normal music-site response (`probe_resistance`).
+- Same port as Navidrome → no extra firewall/DNS surface. The proxy lives in a
+  `:443` catch-all site block: a proxied request carries the *target* host
+  (e.g. `api.anthropic.com`), so it never matches the named music vhost —
+  putting `forward_proxy` only into the named site silently breaks it.
+  Unauthenticated probes fall through to Caddy's bare empty response
+  (`probe_resistance`), indistinguishable from a no-site answer.
 - Basic auth from `.env` (`PROXY_USER`/`PROXY_PASSWORD` via compose env, never in git);
   destination ACL is limited to `anthropic.com` and subdomains, port 443 only —
   the proxy is useless as an open relay even if the password leaks.

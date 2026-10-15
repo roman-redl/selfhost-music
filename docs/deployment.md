@@ -91,10 +91,15 @@ systemd service, and sets up the DuckDNS update cron.
 ```bash
 cd /opt/selfhost-music && sudo git pull --ff-only
 sudo systemctl restart music-watcher        # if scripts changed
-sudo docker compose up -d                   # if compose/Caddyfile changed
+sudo docker compose up -d                   # if compose changed
+sudo docker compose restart caddy           # if ONLY the Caddyfile changed
 sudo docker compose build caddy \
   && sudo docker compose up -d caddy        # if caddy/Dockerfile changed (custom image)
 ```
+
+Caddyfile note: it is bind-mounted as a single file, and `git pull` replaces the
+file (new inode) — a running container keeps seeing the old copy. `up -d` alone
+won't pick the change up; `docker compose restart caddy` re-mounts it.
 
 Rollback for the custom Caddy image: tag the working image first
 (`sudo docker tag selfhost-music-caddy caddy:stock-backup`), then a bad build is
