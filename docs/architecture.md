@@ -5,56 +5,9 @@ rules that came out of it).
 
 ## The system at a glance
 
-```text
-                                                         ┌────────────────┐
-                                                         │v2rayN · v2rayNG│
-                                                         └────────┬───────┘
-                             ┌─ VPS (Oracle ARM) ─────────────────┼────────┐
-┌────────────┐               │ ┌─────────────────┐                │        │
-│ MusicInbox │──Syncthing───►│ │ /music-inbox/   │      ┌─────────┴────┐   │
-│   (Mac)    │               │ │ music-watcher:  │      │  Xray VPN    │   │
-└────────────┘               │ │ mv · fix_tags · │      │ VLESS+REALITY│   │
-  ┌───────┐                  │ │ get_cover.py    │      │    :8443     │   │
-  │ Phone │──SFTP───────────►│ │ (systemd)       │      └──────────────┘   │
-  └───────┘                  │ └────────┬────────┘                         │
-                             │          │                                  │
-                             │     ┌─────────┐           ┌───────────────┐ │
-                             │     │ /music/ │─read-only►│   Navidrome   │ │
-                             │     └─────────┘           │     :4533     │ │
-                             │  ┌──────────┐             │ (Subsonic API)│ │
-                             │  │  /data/  │──owns──────►│               │ │
-                             │  │ (SQLite) │             └───────┬───────┘ │
-                             │  └──────────┘                     │ proxy   │
-                             │                                   v         │
- ┌──────────┐                │                           ┌───────────────┐ │
- │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │ │
- └──────────┘                │                           │ rev·fwd proxy │ │
-                             │                           └───────┬───────┘ │
-                             │                                   │         │
-                             │ ┌──────────────┐ ┌──────────────┐ │         │
-                             │ │ cron 04:37   │ │ cron 04:11   │ │         │
-                             │ │ music backup │ │ git mirrors  │ │         │
-                             │ └──────┬───────┘ └──────┬───────┘ │         │
-                             └────────┼────────────────┼─────────┼─────────┘
-                                      │ rsync (davfs2) │         │ HTTPS · Subsonic API
-                             ┌───────────────────────────┐       │
-                             │  Mail.ru WebDAV (davfs2)  │       │
-                             │ backup/ (music + mirrors) │       │
-                             └───────────────────────────┘       v
-                                                      ┌───────────────────────┐
-                                                      │ Psysonic (desktop)    │
-                                                      │ Substreamer (Android) │
-                                                      │ Supersonic (spare)    │
-                                                      └───────────────────────┘
-
-deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
-
-personal API routing (same Caddy, same :443 — see "Forward proxy on :443"):
-  claude-api (work Mac) ──┐
-  claude-api.cmd (Win)  ──┴── HTTPS CONNECT (basic auth, probe-resistant,
-                               ACL anthropic-only) ──► Caddy :443 ──► api.anthropic.com
-  end-to-end TLS inside the tunnel — Anthropic only ever sees the VPS address
-```
+The architecture diagram lives on the repo front page — [README.md](../README.md),
+"Architecture". Single source, no copies to keep in sync; this file holds the
+details behind the boxes: components, rules, and operational lessons.
 
 ## Components
 

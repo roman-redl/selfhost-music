@@ -42,13 +42,15 @@ all on a single free-tier VPS.
                              │     └─────────┘           │     :4533     │ │
                              │  ┌──────────┐             │ (Subsonic API)│ │
                              │  │  /data/  │──owns──────►│               │ │
-                             │  └──────────┘             └───────┬───────┘ │
-                             │                                   │ proxy   │
+                             │  │ (SQLite) │             └───────┬───────┘ │
+                             │  └──────────┘                     │ proxy   │
                              │                                   v         │
- ┌──────────┐                │                           ┌───────────────┐ │
- │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │ │
- └──────────┘                │                           │ rev·fwd proxy │ │
-                             │                           └───────┬───────┘ │
+ ┌──────────┐                │                           ┌───────────────┐ │      ┌────────────────────┐
+ │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │──tunnel──►│ api.anthropic.com  │
+ └──────────┘                │                           │ rev·fwd proxy │ │      └────────────────────┘
+ ┌────────────────────────┐  │                           │ CONNECT :443  │ │
+ │ claude-api: Mac + Win  │──┼─────────HTTPS CONNECT────►│  (auth·ACL)   │ │
+ └────────────────────────┘  │                           └───────┬───────┘ │
                              │                                   │         │
                              │ ┌──────────────┐ ┌──────────────┐ │         │
                              │ │ cron 04:37   │ │ cron 04:11   │ │         │
@@ -67,12 +69,8 @@ all on a single free-tier VPS.
                                                       └───────────────────────┘
 
 deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
-
-personal API routing (same Caddy, same :443):
-  claude-api (work Mac) ──┐
-  claude-api.cmd (Win)  ──┴── HTTPS CONNECT (basic auth, probe-resistant,
-                               ACL anthropic-only) ──► Caddy :443 ──► api.anthropic.com
-  end-to-end TLS inside the tunnel — Anthropic only ever sees the VPS address
+tunnel:  HTTPS CONNECT (basic auth, probe-resistant, ACL anthropic-only);
+         end-to-end TLS inside — Anthropic only ever sees the VPS address
 ```
 
 Details, rules and operational lessons: [docs/architecture.md](docs/architecture.md).
