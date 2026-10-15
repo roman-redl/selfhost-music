@@ -23,7 +23,8 @@ services:
       ND_AUTHWINDOWLENGTH: "10s"
 
   caddy:
-    image: caddy:latest
+    # Stock Caddy + forwardproxy plugin; see caddy/Dockerfile
+    build: ./caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -31,6 +32,10 @@ services:
     environment:
       # Used by {$DOMAIN} placeholder in config/Caddyfile
       DOMAIN: ${DOMAIN}
+      # Forward-proxy auth ({$PROXY_USER}/{$PROXY_PASSWORD} in Caddyfile);
+      # fail fast instead of starting Caddy with empty credentials
+      PROXY_USER: ${PROXY_USER:?set PROXY_USER in .env}
+      PROXY_PASSWORD: ${PROXY_PASSWORD:?set PROXY_PASSWORD in .env}
     volumes:
       - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-data:/data

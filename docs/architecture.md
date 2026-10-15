@@ -54,7 +54,7 @@ deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS
 | Component | Role |
 |---|---|
 | **Navidrome** (Docker) | Subsonic/OpenSubsonic server; reads `/music/` read-only, DB in `/data/` |
-| **Caddy** (Docker) | TLS termination, automatic certs, reverse proxy to Navidrome |
+| **Caddy** (Docker, custom build) | TLS termination, automatic certs, reverse proxy to Navidrome; also serves an authenticated forward proxy (CONNECT) on :443 for personal API routing — see the section below and the private notes |
 | **music-watcher** (systemd) | Import pipeline for `/music-inbox/`: move → fix tags → fetch cover |
 | **Syncthing** | Laptop `MusicInbox/` → VPS inbox |
 | **SFTP** | Phone → VPS inbox (any SSH/SFTP file manager) |
@@ -64,6 +64,25 @@ deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS
 | **cron** | Nightly WebDAV backups: music 04:37, GitHub repo mirrors 04:11 |
 | **Xray VPN** (adjacent tenant) | Personal VPN on the same VPS: VLESS + REALITY on :8443, same `$DOMAIN`; clients v2rayN (Windows) / v2rayNG (Android); see the private `redl-vpn` repo |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
+
+## Forward proxy on :443
+
+Caddy is a custom build (`caddy/Dockerfile`, stock Caddy + the `forwardproxy`
+plugin) that additionally serves an **authenticated HTTP CONNECT proxy** on the
+same :443 as the music site. Purpose: routing personal API traffic (Claude Code →
+Anthropic) through the VPS, so API credentials never originate from a home/corporate
+IP — Anthropic only ever sees the VPS address. Design points:
+
+- Same domain and port as Navidrome → no extra firewall/DNS surface; proxy probes
+  without credentials get the normal music-site response (`probe_resistance`).
+- Basic auth from `.env` (`PROXY_USER`/`PROXY_PASSWORD` via compose env, never in git);
+  destination ACL is limited to `anthropic.com` and subdomains, port 443 only —
+  the proxy is useless as an open relay even if the password leaks.
+- End-to-end TLS inside the CONNECT tunnel: the proxy can see (and log) only the
+  target hostname, not the traffic or the API key.
+
+Operational details (client wrapper, test commands, corporate-network fallback)
+live in the private notes, not in this public repo.
 
 ## Library conventions
 
