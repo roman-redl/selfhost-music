@@ -1,8 +1,31 @@
-{$DOMAIN:music.yourdomain.duckdns.org} {
-    reverse_proxy navidrome:4533
+{
+	# CONNECT requests must reach forward_proxy before the site handler,
+	# otherwise they fall through to reverse_proxy
+	order forward_proxy first
+}
 
-    # Uncomment for Audiobookshelf (Stage 9)
-    # handle_path /abs/* {
-    #     reverse_proxy audiobookshelf:80
-    # }
+{$DOMAIN:music.yourdomain.duckdns.org} {
+	# Authenticated CONNECT proxy on :443 for personal API routing
+	# (Claude Code → Anthropic). Credentials come from .env via compose,
+	# never from git. Unauthenticated proxy probes get the normal site
+	# response (probe_resistance); the ACL only lets anthropic through.
+	forward_proxy {
+		basic_auth {$PROXY_USER} {$PROXY_PASSWORD}
+		ports 443
+		hide_ip
+		hide_via
+		probe_resistance
+		acl {
+			allow anthropic.com
+			allow *.anthropic.com
+			deny all
+		}
+	}
+
+	reverse_proxy navidrome:4533
+
+	# Uncomment for Audiobookshelf (Stage 9)
+	# handle_path /abs/* {
+	#     reverse_proxy audiobookshelf:80
+	# }
 }

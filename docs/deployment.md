@@ -35,13 +35,13 @@ systemd service, and sets up the DuckDNS update cron.
    ```bash
    sudo git clone https://github.com/roman-redl/selfhost-music.git /opt/selfhost-music
    cd /opt/selfhost-music
-   cp .env.example .env && nano .env   # DOMAIN, NAVIDROME_USER/PASSWORD, backup creds
+   cp .env.example .env && nano .env   # DOMAIN, NAVIDROME_USER/PASSWORD, PROXY_USER/PASSWORD, backup creds
    ```
 
 3. **Start the stack**
 
    ```bash
-   sudo docker compose up -d
+   sudo docker compose up -d --build   # first run builds the Caddy image (a few minutes)
    ```
 
 4. **Import watcher**
@@ -92,6 +92,14 @@ systemd service, and sets up the DuckDNS update cron.
 cd /opt/selfhost-music && sudo git pull --ff-only
 sudo systemctl restart music-watcher        # if scripts changed
 sudo docker compose up -d                   # if compose/Caddyfile changed
+sudo docker compose build caddy \
+  && sudo docker compose up -d caddy        # if caddy/Dockerfile changed (custom image)
 ```
+
+Rollback for the custom Caddy image: tag the working image first
+(`sudo docker tag selfhost-music-caddy caddy:stock-backup`), then a bad build is
+one `git revert` + `sudo docker compose build caddy && sudo docker compose up -d caddy`
+away from being undone; in the worst case point compose back at `image: caddy:latest`
+(the stock Caddyfile pattern) and `docker compose up -d caddy`.
 
 Never edit files on the VPS directly — the checkout must stay identical to git.
