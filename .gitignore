@@ -38,8 +38,9 @@ MusicInbox/
 playlists/
 
 # Private operational context: incidents, library specifics, agents' journal.
-# Never publish — the public repo is a generic blueprint.
-docs/private/
+# Never publish — the public repo is a generic blueprint. Lives in its own
+# private repo (roman-redl/handoff) cloned into this directory.
+handoff/
 
 # Local library backups (13 GB, pulled from the VPS)
 backup-library-*/
