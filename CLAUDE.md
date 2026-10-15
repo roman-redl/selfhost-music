@@ -102,8 +102,11 @@ hand off context, not transcripts.
   (incident journal), then commit and push **inside handoff** (`cd handoff &&
   git add -A && git commit -m ... && git push`).
 - **Session handoff** («запиши хэндофф»): write
-  `handoff/sessions/YYYY-MM-DD-<topic>.md` (Статус / Что сделано / Грабли /
-  Следующие шаги), then commit and push in handoff. The picking-up agent starts
+  `handoff/sessions/YYYY-MM-DD-<project>-<topic>.md` (Статус / Что сделано /
+  Грабли / Следующие шаги), then commit and push in handoff. Sessions of ANY
+  personal cross-machine task live there (not just selfhost-music); the
+  mechanism is wired globally via the user-level `~/.claude/CLAUDE.md`, so
+  agents know about it from any launch location. The picking-up agent starts
   from that file — cheaper and more reliable than resuming a foreign transcript.
 - **Never** put API keys into handoff. The proxy password is the only allowed
   secret there (ACL-limited; rotation procedure in `handoff/claude-api-wrappers.md`).
