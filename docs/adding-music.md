@@ -131,7 +131,7 @@ The artist id is visible in the Navidrome web UI (the artist page URL) or in the
 DB. On the Mac there is a helper that resolves names to ids and clears the cache:
 
 ```bash
-bash docs/private/psysonic-uncache.sh "ABBA" "Boston"
+bash handoff/psysonic-uncache.sh "ABBA" "Boston"
 ```
 
 Why the full cycle matters: an upload alone does not advance the server's

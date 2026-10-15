@@ -85,25 +85,25 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
 - Adding music and cover art: `docs/adding-music.md`
 - Recovering from a lost VPS: `docs/disaster-recovery.md`
 - **Machine-local private notes** (library specifics, incident journal — never published):
-  `docs/private/` is gitignored; if it exists, read it first — it overrides/refines
-  the generic rules above with operational context for this specific installation.
+  `handoff/` — a nested **private** repo (`roman-redl/handoff`) cloned into this
+  directory; the parent repo ignores it. If present, read `handoff/project-context.md`
+  first — it overrides/refines the generic rules above with operational context for
+  this specific installation.
 
-## Private notes ↔ handoff repo (cross-machine handoff)
+## handoff: private repo and cross-machine session handoff
 
-`docs/private/` is gitignored on purpose (this repo is public). Its content is
-mirrored to the **private** repo `roman-redl/handoff` (local clone:
-`~/personal-projects/handoff`, structure and rules in its README), together with
-session handoff files. Sessions are not portable between macOS and Windows —
+Everything private (incident journal, claude-api instructions, playlist snapshots,
+session handoffs) is committed to `handoff/` — its own private git repo nested in
+this one (clone it with `git clone git@github.com:roman-redl/handoff.git handoff`;
+on the VPS it is not needed). Sessions are not portable between macOS and Windows —
 hand off context, not transcripts.
 
-- **After meaningful work / new lessons:** update `docs/private/project-context.md`
-  (incident journal), then run `scripts/push-private.sh` — it mirrors `docs/private/`
-  into `handoff/selfhost-music/`, commits and pushes everything (fresh session
-  files included).
+- **After meaningful work / new lessons:** update `handoff/project-context.md`
+  (incident journal), then commit and push **inside handoff** (`cd handoff &&
+  git add -A && git commit -m ... && git push`).
 - **Session handoff** («запиши хэндофф»): write
-  `~/personal-projects/handoff/sessions/YYYY-MM-DD-<topic>.md` (Статус / Что
-  сделано / Грабли / Следующие шаги), then run the same script. The picking-up
-  agent starts from that file — cheaper and more reliable than resuming a
-  foreign transcript.
+  `handoff/sessions/YYYY-MM-DD-<topic>.md` (Статус / Что сделано / Грабли /
+  Следующие шаги), then commit and push in handoff. The picking-up agent starts
+  from that file — cheaper and more reliable than resuming a foreign transcript.
 - **Never** put API keys into handoff. The proxy password is the only allowed
-  secret there (ACL-limited; rotation procedure in `docs/private/claude-api-wrappers.md`).
+  secret there (ACL-limited; rotation procedure in `handoff/claude-api-wrappers.md`).
