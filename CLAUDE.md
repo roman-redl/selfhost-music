@@ -71,7 +71,10 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
 4. VPS: `ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN` (`$DOMAIN` from `.env`):
    `cd /opt/selfhost-music && sudo git pull --ff-only`.
 5. Restart services as needed: `sudo systemctl restart music-watcher`;
-   `docker compose up -d caddy` if configs changed.
+   Caddy (custom image with forwardproxy): `docker compose build caddy &&
+   docker compose up -d caddy` if `caddy/Dockerfile` changed; if only the
+   Caddyfile changed — `docker compose restart caddy` (single-file bind mount
+   keeps the old inode after git pull; `up -d` alone won't pick it up).
 6. **Never edit files on the VPS by hand** — the VPS checkout diverged from git once;
    everything goes through git.
 

@@ -28,7 +28,8 @@ rules that came out of it).
                              │                                   v         │
  ┌──────────┐                │                           ┌───────────────┐ │
  │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │ │
- └──────────┘                │                           └───────┬───────┘ │
+ └──────────┘                │                           │ rev·fwd proxy │ │
+                             │                           └───────┬───────┘ │
                              │                                   │         │
                              │ ┌──────────────┐ ┌──────────────┐ │         │
                              │ │ cron 04:37   │ │ cron 04:11   │ │         │
@@ -47,6 +48,12 @@ rules that came out of it).
                                                       └───────────────────────┘
 
 deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
+
+personal API routing (same Caddy, same :443 — see "Forward proxy on :443"):
+  claude-api (work Mac) ──┐
+  claude-api.cmd (Win)  ──┴── HTTPS CONNECT (basic auth, probe-resistant,
+                               ACL anthropic-only) ──► Caddy :443 ──► api.anthropic.com
+  end-to-end TLS inside the tunnel — Anthropic only ever sees the VPS address
 ```
 
 ## Components
