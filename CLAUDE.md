@@ -90,28 +90,12 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
   first — it overrides/refines the generic rules above with operational context for
   this specific installation.
 
-## handoff: private repo and cross-machine session handoff
+## handoff: private repo (nested) and session handoffs
 
-Everything private (incident journal, claude-api instructions, playlist snapshots,
-session handoffs) is committed to `handoff/` — its own private git repo nested in
-this one (clone it with `git clone git@github.com:roman-redl/handoff.git handoff`;
-on the VPS it is not needed). Sessions are not portable between macOS and Windows —
-hand off context, not transcripts.
-
-- **After meaningful work / new lessons:** update `handoff/project-context.md`
-  (incident journal), then commit and push **inside handoff** (`cd handoff &&
-  git add -A && git commit -m ... && git push`).
-- **Session handoff** («запиши хэндофф»): write
-  `handoff/sessions/YYYY-MM-DD-<project>-<topic>.md` (Статус / Что сделано /
-  Грабли / Следующие шаги), then commit and push in handoff. Sessions of ANY
-  personal cross-machine task live there (not just selfhost-music); the
-  mechanism is wired globally via the user-level `~/.claude/CLAUDE.md`, so
-  agents know about it from any launch location. The picking-up agent starts
-  from that file — cheaper and more reliable than resuming a foreign transcript.
-  Pick files by NAME first (`ls handoff/sessions/`, name = date-project-topic),
-  never bulk-read sessions/. One task = one file: on update, re-date it
-  (`git mv`) and extend — past versions live in git history; delete only when
-  the user says the task is closed. The mechanism is wired via the root
-  `~/personal-projects/CLAUDE.md` (all personal projects; work dirs unaffected).
-- **Never** put API keys into handoff. The proxy password is the only allowed
-  secret there (ACL-limited; rotation procedure in `handoff/claude-api-wrappers.md`).
+`handoff/` — a nested **private** repo (`roman-redl/handoff`), ignored by this
+public one. Private docs (incident journal, claude-api instructions, playlist
+snapshots) live there; read `handoff/project-context.md` first when present —
+it overrides generic rules. Cross-machine session handoffs (any personal
+project) live in `handoff/sessions/`: written ONLY on explicit request via the
+`/my-handoff` skill (read rules and lifecycle: `~/personal-projects/CLAUDE.md`).
+Never put API keys there (proxy password is fine).
