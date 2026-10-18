@@ -67,7 +67,8 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
    smoke-test on copies in /tmp, never on the live library.
 2. After rewriting a `.sh`, check `ls -l` — the exec bit is lost when a script file is
    replaced via some editors/deploy paths (caused a systemd 203/EXEC crash loop once).
-3. Commit (short message) + push.
+3. Commit (short message, English) + push. Message text only — no
+   auto-added trailers (`Co-Authored-By: …`, "Generated with …").
 4. VPS: `ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN` (`$DOMAIN` from `.env`):
    `cd /opt/selfhost-music && sudo git pull --ff-only`.
 5. Restart services as needed: `sudo systemctl restart music-watcher`;
