@@ -67,7 +67,8 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
    smoke-test on copies in /tmp, never on the live library.
 2. After rewriting a `.sh`, check `ls -l` — the exec bit is lost when a script file is
    replaced via some editors/deploy paths (caused a systemd 203/EXEC crash loop once).
-3. Commit (short message, English) + push. Message text only — no
+3. Commit (short conventional message — `feat:` / `fix:` / `docs:` …, English)
+   + push. Message text only — no
    auto-added trailers (`Co-Authored-By: …`, "Generated with …").
 4. VPS: `ssh -i ~/.ssh/id_ed25519_oracle ubuntu@$DOMAIN` (`$DOMAIN` from `.env`):
    `cd /opt/selfhost-music && sudo git pull --ff-only`.
@@ -99,4 +100,5 @@ snapshots) live there; read `handoff/project-context.md` first when present —
 it overrides generic rules. Cross-machine session handoffs (any personal
 project) live in `handoff/sessions/`: written ONLY on explicit request via the
 `/handoff` skill (read rules and lifecycle: `~/personal-projects/CLAUDE.md`).
-Never put API keys there (proxy password is fine).
+Work/corporate secrets never go there; personal passwords and keys are fine
+(e.g. the proxy password).
