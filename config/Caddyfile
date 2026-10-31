@@ -28,6 +28,10 @@
 		acl {
 			allow anthropic.com
 			allow *.anthropic.com
+			allow claude.com
+			allow *.claude.com
+			allow claude.ai
+			allow *.claude.ai
 			allow api.openai.com
 			allow api.groq.com
 			deny all
