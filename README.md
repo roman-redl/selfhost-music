@@ -24,7 +24,7 @@ all on a single free-tier VPS.
 
 ## Architecture
 
-```text
+```diagram
                                                          ┌────────────────┐
                                                          │v2rayN · v2rayNG│
                                                          └────────┬───────┘
@@ -45,13 +45,18 @@ all on a single free-tier VPS.
                              │  │ (SQLite) │             └───────┬───────┘ │
                              │  └──────────┘                     │ proxy   │
                              │                                   v         │
- ┌──────────┐                │                           ┌───────────────┐ │      ┌────────────────────┐
+ ┌──────────┐                │                           ┌───────────────┐ │         ┌────────────────────┐
  │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │──tunnel──►│ api.anthropic.com  │
- └──────────┘                │                           │ rev·fwd proxy │ │      └────────────────────┘
+ └──────────┘                │                           │ rev·fwd proxy │ │         └────────────────────┘
  ┌────────────────────────┐  │                           │ CONNECT :443  │ │
  │ claude-api: Mac + Win  │──┼─────────HTTPS CONNECT────►│  (auth·ACL)   │ │
  └────────────────────────┘  │                           └───────┬───────┘ │
                              │                                   │         │
+                             │ ┌───────────────────────────────┐ │         │
+                             │ │ erudit-bot (Docker): Telegram │ │         │
+                             │ │ bot for the author's channel. │ │         │
+                             │ │ Outbound only, no open ports. │ │         │
+                             │ └───────────────────────────────┘ │         │
                              │ ┌──────────────┐ ┌──────────────┐ │         │
                              │ │ cron 04:37   │ │ cron 04:11   │ │         │
                              │ │ music backup │ │ git mirrors  │ │         │
@@ -69,7 +74,7 @@ all on a single free-tier VPS.
                                                       └───────────────────────┘
 
 deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
-tunnel:  HTTPS CONNECT (basic auth, probe-resistant, ACL anthropic-only);
+tunnel:  HTTPS CONNECT (basic auth, probe-resistant, ACL: anthropic·openai·groq);
          end-to-end TLS inside — Anthropic only ever sees the VPS address
 ```
 

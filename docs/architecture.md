@@ -22,7 +22,8 @@ details behind the boxes: components, rules, and operational lessons.
 | **davfs2 → Mail.ru WebDAV** | Backup target mounted on the VPS; nightly rsync lands in `<mount>/backup/` |
 | **GitHub** | Deploy source: the VPS checkout pulls `--ff-only`; nothing is edited on the VPS by hand |
 | **cron** | Nightly WebDAV backups: music 04:37, GitHub repo mirrors 04:11 |
-| **Xray VPN** (adjacent tenant) | Personal VPN on the same VPS: VLESS + REALITY on :8443, same `$DOMAIN`; clients v2rayN (Windows) / v2rayNG (Android); see the private `redl-vpn` repo |
+| **Xray VPN** | Personal VPN on the same VPS: VLESS + REALITY on :8443, same `$DOMAIN`; clients v2rayN (Windows) / v2rayNG (Android); see the private `redl-vpn` repo |
+| **erudit-bot** | Telegram bot (Docker, private repo) drafting posts for the author's channel: voice notes → text (whisper: local / OpenAI / Groq), text → Anthropic → preview channel → main channel; pulls style from / pushes post notes to the notes vault on GitHub (deploy key); outbound only — no exposed ports |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
 
 ## Forward proxy on :443
@@ -40,7 +41,8 @@ IP — Anthropic only ever sees the VPS address. Design points:
   Unauthenticated probes fall through to Caddy's bare empty response
   (`probe_resistance`), indistinguishable from a no-site answer.
 - Basic auth from `.env` (`PROXY_USER`/`PROXY_PASSWORD` via compose env, never in git);
-  destination ACL is limited to `anthropic.com` and subdomains, port 443 only —
+  destination ACL is limited to `anthropic.com`, `claude.ai`, `api.openai.com`,
+  `api.groq.com` (and their subdomains), port 443 only —
   the proxy is useless as an open relay even if the password leaks.
 - End-to-end TLS inside the CONNECT tunnel: the proxy can see (and log) only the
   target hostname, not the traffic or the API key.
