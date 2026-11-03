@@ -18,9 +18,10 @@ all on a single free-tier VPS.
   to Mail.ru Cloud over WebDAV (any WebDAV endpoint works with minor tweaks).
 - **Disaster recovery in ~1 hour:** one script re-provisions the VPS, backups restore
   the library and the database (playlists, favorites, play counts).
-- **Authenticated forward proxy on :443** (same Caddy): personal API traffic
-  (e.g. Claude Code → Anthropic) exits from the VPS through an HTTPS CONNECT
-  tunnel — probe-resistant, ACL-limited, credentials in `.env`.
+- **Personal AI routing on :443** (same Caddy): a token-gated reverse route
+  `/anthropic/*` → api.anthropic.com (fail-closed: the client never learns
+  Anthropic's address) plus an authenticated CONNECT proxy for the rest of a
+  personal session's web traffic — probe-resistant, credentials in `.env`.
 
 ## Architecture
 
@@ -46,10 +47,11 @@ all on a single free-tier VPS.
                              │  └──────────┘                     │ proxy   │
                              │                                   v         │
  ┌──────────┐                │                           ┌───────────────┐ │         ┌────────────────────┐
- │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │──tunnel──►│ api.anthropic.com  │
- └──────────┘                │                           │ rev·fwd proxy │ │         └────────────────────┘
+ │  DuckDNS │───$DOMAIN──────├──────────────────────────►│  Caddy :443   │──rev·tls─►│ api.anthropic.com  │
+ └──────────┘                │                           │ /anthropic    │ │         └────────────────────┘
  ┌────────────────────────┐  │                           │ CONNECT :443  │ │
- │ claude-api: Mac + Win  │──┼─────────HTTPS CONNECT────►│  (auth·ACL)   │ │
+ │ claude-api: Mac + Win  │──┼──HTTPS /anthropic (model)►│ token · pwd   │ │
+ │ web tools of sessions  │──┼───HTTPS CONNECT (web)────►│  exit IP: VPS │ │
  └────────────────────────┘  │                           └───────┬───────┘ │
                              │                                   │         │
                              │ ┌───────────────────────────────┐ │         │
@@ -74,8 +76,9 @@ all on a single free-tier VPS.
                                                       └───────────────────────┘
 
 deploy:  Mac ──push──> GitHub ──pull──> /opt/selfhost-music (VPS)
-tunnel:  HTTPS CONNECT (basic auth, probe-resistant, ACL: anthropic·openai·groq);
-         end-to-end TLS inside — Anthropic only ever sees the VPS address
+claude:  model → HTTPS /anthropic (token-gated reverse proxy, fail-closed);
+         session web tools → HTTPS CONNECT (basic auth, probe-resistant, open
+         destination ACL) — the whole session exits from the VPS address
 ```
 
 Details, rules and operational lessons: [docs/architecture.md](docs/architecture.md).

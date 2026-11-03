@@ -26,26 +26,35 @@ details behind the boxes: components, rules, and operational lessons.
 | **erudit-bot** | Telegram bot (Docker, private repo) drafting posts for the author's channel: voice notes → text (whisper: local / OpenAI / Groq), text → Anthropic → preview channel → main channel; pulls style from / pushes post notes to the notes vault on GitHub (deploy key); outbound only — no exposed ports |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
 
-## Forward proxy on :443
+## Personal AI routing on :443
 
 Caddy is a custom build (`caddy/Dockerfile`, stock Caddy + the `forwardproxy`
-plugin) that additionally serves an **authenticated HTTP CONNECT proxy** on the
-same :443 as the music site. Purpose: routing personal API traffic (Claude Code →
-Anthropic) through the VPS, so API credentials never originate from a home/corporate
-IP — Anthropic only ever sees the VPS address. Design points:
+plugin) that carries two related services on the same :443 as the music site:
 
-- Same port as Navidrome → no extra firewall/DNS surface. The proxy lives in a
-  `:443` catch-all site block: a proxied request carries the *target* host
-  (e.g. `api.anthropic.com`), so it never matches the named music vhost —
-  putting `forward_proxy` only into the named site silently breaks it.
-  Unauthenticated probes fall through to Caddy's bare empty response
-  (`probe_resistance`), indistinguishable from a no-site answer.
-- Basic auth from `.env` (`PROXY_USER`/`PROXY_PASSWORD` via compose env, never in git);
-  destination ACL is limited to `anthropic.com`, `claude.ai`, `api.openai.com`,
-  `api.groq.com` (and their subdomains), port 443 only —
-  the proxy is useless as an open relay even if the password leaks.
-- End-to-end TLS inside the CONNECT tunnel: the proxy can see (and log) only the
-  target hostname, not the traffic or the API key.
+1. **Reverse route `/anthropic/*`** (in the named site block): strips the
+   prefix and proxies to `api.anthropic.com` (`flush_interval -1` for SSE),
+   gated by an `X-Proxy-Token` header (token in `.env`, injected via compose).
+   Without the token the route answers a bare 403 like an ordinary site.
+   Purpose: the client targets `ANTHROPIC_BASE_URL = $DOMAIN/anthropic` and
+   never learns Anthropic's real address — fail-closed, and Caddy itself
+   egresses to Anthropic from the VPS IP.
+2. **Authenticated CONNECT proxy** (in the `:443` catch-all block): routes the
+   rest of a personal session's web tools (WebFetch, curl, external MCP) —
+   geo-blocks don't apply, everything exits from the VPS. Design points:
+
+   - The proxy lives in a `:443` catch-all site block: a proxied request
+     carries the *target* host (e.g. `api.anthropic.com`), so it never matches
+     the named music vhost — putting `forward_proxy` only into the named site
+     silently breaks it. Unauthenticated probes fall through to Caddy's bare
+     empty response (`probe_resistance`), indistinguishable from a no-site answer.
+   - Basic auth from `.env` (`PROXY_USER`/`PROXY_PASSWORD` via compose env,
+     never in git); destination ACL is open (`allow all`) — corporate hosts are
+     excluded client-side via `NO_PROXY`, so the password is the only gate:
+     keep it long and rotate on any suspicion.
+   - End-to-end TLS inside the CONNECT tunnel: the proxy can see (and log)
+     only the target hostname, not the traffic or the API key. The `/anthropic`
+     reverse route, by contrast, terminates TLS at Caddy by design — the VPS is
+     trusted infrastructure and the fail-closed property is worth the trade.
 
 Operational details (client wrapper, test commands, corporate-network fallback)
 live in the private notes, not in this public repo.
