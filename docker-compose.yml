@@ -36,6 +36,8 @@ services:
       # fail fast instead of starting Caddy with empty credentials
       PROXY_USER: ${PROXY_USER:?set PROXY_USER in .env}
       PROXY_PASSWORD: ${PROXY_PASSWORD:?set PROXY_PASSWORD in .env}
+      # Token for the /anthropic reverse route ({$CLAUDE_ROUTE_TOKEN} in Caddyfile)
+      CLAUDE_ROUTE_TOKEN: ${CLAUDE_ROUTE_TOKEN:?set CLAUDE_ROUTE_TOKEN in .env}
     volumes:
       - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-data:/data

@@ -5,7 +5,28 @@
 }
 
 {$DOMAIN:music.yourdomain.duckdns.org} {
-    reverse_proxy navidrome:4533
+    # Personal Claude API: reverse route to Anthropic behind a token.
+    # Replaces the HTTPS_PROXY scheme: Claude Code targets this URL via
+    # ANTHROPIC_BASE_URL, Caddy itself egresses to api.anthropic.com from
+    # the VPS IP. Token: {$CLAUDE_ROUTE_TOKEN} from .env via compose.
+    handle /anthropic/* {
+        # `route` keeps the written order: strip prefix, proxy when the
+        # token matches, otherwise fall through to 403. (A nested `handle`
+        # gets flattened by the adapter; bare `respond` would fire first.)
+        route {
+            @authorized header X-Proxy-Token {$CLAUDE_ROUTE_TOKEN}
+            uri strip_prefix /anthropic
+            reverse_proxy @authorized https://api.anthropic.com {
+                header_up Host api.anthropic.com
+                flush_interval -1
+            }
+            respond 403
+        }
+    }
+
+    handle {
+        reverse_proxy navidrome:4533
+    }
 
     # Uncomment for Audiobookshelf (Stage 9)
     # handle_path /abs/* {
@@ -26,15 +47,11 @@
 		hide_via
 		probe_resistance
 		acl {
-			allow anthropic.com
-			allow *.anthropic.com
-			allow claude.com
-			allow *.claude.com
-			allow claude.ai
-			allow *.claude.ai
-			allow api.openai.com
-			allow api.groq.com
-			deny all
+			# Opened 2026-11-03: personal claude-api sessions route ALL their
+			# web tools through this proxy (geo-blocks from BY IPs); corporate
+			# hosts are excluded client-side via NO_PROXY. Basic auth still
+			# gates everything; rotate PROXY_PASSWORD on any suspicion.
+			allow all
 		}
 	}
 }
