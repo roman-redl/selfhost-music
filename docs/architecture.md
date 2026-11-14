@@ -154,8 +154,10 @@ account for the sign when parsing.
   `--exclude navidrome-data` (and `--exclude git-backup` for the adjacent mirrors)
   so `--delete` on the music pass cannot remove them.
 - Separate nightly cron 04:11 → `/usr/local/bin/git-backup-to-cloud` (VPS-local, not in
-  this repo): `git fetch` in `/opt/git-backup/*.git` — `--mirror` clones of all personal
-  GitHub repos (the notes vault among them) — then rsync into `<mount>/backup/git-backup/`.
+  this repo): `git fetch` in `/opt/git-backup/*.git` — `--mirror` clones of the personal
+  GitHub repos (the notes vault among them; `handoff` excluded) — then rsync into
+  `<mount>/backup/git-backup/`. New repos are discovered via the GitHub API and cloned
+  automatically; private ones need a read-only token in `/etc/git-backup/github-token`.
   Adjacent tenant, not part of the music stack; shares only the VPS and the davfs mount.
   Restore: `git clone /opt/git-backup/<repo>.git` or the cloud copy.
 - davfs2 quirks with Mail.ru WebDAV: needs `use_locks 0` and, on Linux ≥ 6.16,
@@ -168,6 +170,18 @@ account for the sign when parsing.
   prefer removing whole folders from the cloud's web UI. A bulk `rm -rf` through the
   davfs mount can also *hang* with `Resource temporarily unavailable` — kill the rm,
   lazy-unmount + remount the davfs mount, retry (2026-10-03).
+- A script that mounts davfs while holding a `flock` must close the lock descriptor for
+  `mount` (`mount … 200>&-`): the mount.davfs daemon inherits it and holds the lock
+  forever — the git backup silently exited "already running" for 37 nights (2026-10/11).
+- Mail.ru rejects names with `" * : < > ? \ |`; davfs accepts the write, fails the upload
+  in the background and keeps a copy in its cache every night (5.6 GB of copies of 7
+  tracks; rsync still reports success). The backup excludes such names and logs a WARN.
+- Never wipe `/var/cache/davfs2/` wholesale: its `index` keeps the file mtimes that the
+  cloud does not store. Without it every file looks changed and the next run re-transfers
+  the whole library (~13 GB each way, 2 hours; 2026-11-14). If the cache bloats, find
+  and remove the cause (like the rejected names above) instead of wiping it.
+- Every rsync into the mount needs `--inplace` (rename of rsync's temp file fails with
+  I/O error 5) — including small files such as `navidrome-data/playlists/*.m3u`.
 
 ## Misc lessons
 
