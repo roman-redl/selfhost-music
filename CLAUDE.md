@@ -15,6 +15,11 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
 - **Tags:** Artist/Title/Album are mandatory; tags must equal the filename (NFC); one artist =
   one spelling/case. Album = track title (each track gets its own "album" and cover in
   Subsonic clients), except explicit real compilations.
+- **Exception — characters forbidden in filenames:** `" * : < > ? \ |` (Windows and the
+  Mail.ru cloud reject them; the backup skips such files with a WARN). Only the filename
+  is changed, tags keep the original title: `:` → `.`, `?` removed, `"…"` → `«…»`.
+  Rename without retagging keeps the Navidrome track id (it is derived from tags), so
+  playlists, play counts and client caches survive.
 - **Multiple artists only via `A; B`** — Navidrome splits artist tags on `; ` and `feat.`
   only (`feat.` splits into at most two parts). **Commas do not split** (verified
   experimentally). Real duos/groups stay as a single name with `&`.

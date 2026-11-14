@@ -68,6 +68,12 @@ live in the private notes, not in this public repo.
   title — since Navidrome stores one artwork per album and most clients display album art,
   this gives every track its own cover. Real compilations (multi-track albums) are the
   deliberate exception.
+- Exception to "tags match the filename": titles with `" * : < > ? \ |`. These characters
+  are not allowed in filenames (Windows, the Mail.ru cloud — the nightly backup skips
+  such files and logs a WARN), so only the filename is adjusted while TIT2 keeps the
+  original: `:` → `.`, `?` removed, `"…"` → `«…»` (e.g. TIT2 `Tabula rasa: I. Ludus`,
+  file `… - Tabula rasa. I. Ludus.mp3`). The track id survives such a rename — see
+  "Misc lessons".
 - One artist = one spelling/case (majority vote); stylized spellings are kept as-is.
 - No junk in titles: year suffixes, `(Official Video)`, `Original Version`, etc. Intentional
   mix suffixes (Extended Mix…) may stay.

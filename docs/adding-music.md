@@ -8,7 +8,9 @@
 2. In ~30 seconds the track is tagged, gets cover art, and shows up on every client.
 
 Quality notes:
-- Name the file `Artist - Title.ext` (single ` - `, NFC).
+- Name the file `Artist - Title.ext` (single ` - `, NFC). No `" * : < > ? \ |` in the
+  name: replace `:` with `.`, drop `?`, use `«…»` for quotes; the original title can be
+  kept in the Title tag (see the exception in architecture.md).
 - Prefer files with sane ID3 tags (the fixer only repairs missing/invalid values).
 - Want a specific cover? Put `Artist - Title.jpg|png` next to the audio file — see below.
 
