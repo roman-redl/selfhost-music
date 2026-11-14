@@ -19,6 +19,15 @@
             reverse_proxy @authorized https://api.anthropic.com {
                 header_up Host api.anthropic.com
                 flush_interval -1
+                # Hide the "You've used NN% of your limit" notices: drop the
+                # threshold headers and report allowed_warning as allowed.
+                # Utilization headers stay (claude-limits reads them); a hard
+                # limit still arrives as status rejected with a 429.
+                header_down -anthropic-ratelimit-unified-5h-surpassed-threshold
+                header_down -anthropic-ratelimit-unified-7d-surpassed-threshold
+                header_down anthropic-ratelimit-unified-status allowed_warning allowed
+                header_down anthropic-ratelimit-unified-5h-status allowed_warning allowed
+                header_down anthropic-ratelimit-unified-7d-status allowed_warning allowed
             }
             respond 403
         }
