@@ -17,8 +17,10 @@ log() { echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOGFILE"; }
 log "Starting backup..."
 
 # Ensure WebDAV is mounted
+# 200>&-: the mount.davfs daemon must not inherit the lock descriptor,
+# otherwise it holds the lock forever and every later run exits as "already running".
 if ! mountpoint -q "$WEBDAV_MOUNT"; then
-    mount "$WEBDAV_MOUNT" || { log "ERROR: Failed to mount WebDAV"; exit 1; }
+    mount "$WEBDAV_MOUNT" 200>&- || { log "ERROR: Failed to mount WebDAV"; exit 1; }
 fi
 mkdir -p "$BACKUP_ROOT"
 
@@ -27,8 +29,15 @@ mkdir -p "$BACKUP_ROOT"
 # with I/O error 5; in-place writes avoid the rename entirely.
 # --exclude git-backup: рядом в backup/ лежат зеркала репозиториев (крон 04:11),
 # их --delete музыкального прохода касаться не должен.
+# Mail.ru отклоняет имена с " * : < > ? \ | — davfs молча оставляет такие файлы
+# в своём кеше и копит их каждую ночь. Такие файлы исключаются и пишутся в лог.
+BAD_NAMES='*[?"*:<>|\\]*'
+find /opt/selfhost-music/music -name "$BAD_NAMES" -printf '%P\n' | while read -r f; do
+    log "WARN: not backed up, name rejected by cloud: $f"
+done
 log "Syncing music..."
 rsync -a --delete --inplace --exclude 'navidrome-data' --exclude 'git-backup' --exclude 'Аудиокниги' \
+    --exclude "$BAD_NAMES" \
     /opt/selfhost-music/music/ "$BACKUP_ROOT/" >> "$LOGFILE" 2>&1
 log "Music sync done."
 
@@ -40,9 +49,10 @@ log "Snapshotting Navidrome DB..."
 python3 -c "import sqlite3; src = sqlite3.connect('/opt/selfhost-music/data/navidrome.db'); dst = sqlite3.connect('/tmp/navidrome-snapshot.db'); src.backup(dst); dst.close(); src.close()" \
     || { log "ERROR: DB snapshot failed"; exit 1; }
 log "Syncing Navidrome data..."
-rsync -a --delete --exclude 'cache' --exclude 'navidrome.db' --exclude 'navidrome.db-wal' --exclude 'navidrome.db-shm' \
+# --inplace — same davfs2 rename failure as above (seen on playlists/*.m3u).
+rsync -a --delete --inplace --exclude 'cache' --exclude 'navidrome.db' --exclude 'navidrome.db-wal' --exclude 'navidrome.db-shm' \
     /opt/selfhost-music/data/ "$BACKUP_ROOT/navidrome-data/" >> "$LOGFILE" 2>&1
-rsync -a /tmp/navidrome-snapshot.db "$BACKUP_ROOT/navidrome-data/navidrome-snapshot.db" >> "$LOGFILE" 2>&1
+rsync -a --inplace /tmp/navidrome-snapshot.db "$BACKUP_ROOT/navidrome-data/navidrome-snapshot.db" >> "$LOGFILE" 2>&1
 rm -f /tmp/navidrome-snapshot.db
 log "Navidrome data sync done."
 
