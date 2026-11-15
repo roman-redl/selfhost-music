@@ -59,6 +59,11 @@ all on a single free-tier VPS.
                              │ │ bot for the author's channel. │ │         │
                              │ │ Outbound only, no open ports. │ │         │
                              │ └───────────────────────────────┘ │         │
+                             │ ┌───────────────────────────────┐ │         │
+                             │ │ parley (Docker): LibreChat +  │ │         │
+                             │ │ Open WebUI behind Caddy, MCP  │ │         │
+                             │ │ tools on notes/handoff clones │ │         │
+                             │ └───────────────────────────────┘ │         │
                              │ ┌──────────────┐ ┌──────────────┐ │         │
                              │ │ cron 04:37   │ │ cron 04:11   │ │         │
                              │ │ music backup │ │ git mirrors  │ │         │

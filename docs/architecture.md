@@ -14,7 +14,7 @@ details behind the boxes: components, rules, and operational lessons.
 | Component | Role |
 |---|---|
 | **Navidrome** (Docker) | Subsonic/OpenSubsonic server; reads `/music/` read-only, DB in `/data/` |
-| **Caddy** (Docker, custom build) | TLS termination, automatic certs, reverse proxy to Navidrome; also serves an authenticated forward proxy (CONNECT) on :443 for personal API routing — see the section below and the private notes |
+| **Caddy** (Docker, custom build) | TLS termination, automatic certs, reverse proxy to Navidrome and to parley (sub-subdomains of `$DOMAIN`); also serves an authenticated forward proxy (CONNECT) on :443 for personal API routing — see the section below and the private notes |
 | **music-watcher** (systemd) | Import pipeline for `/music-inbox/`: move → fix tags → fetch cover |
 | **Syncthing** | Laptop `MusicInbox/` → VPS inbox |
 | **SFTP** | Phone → VPS inbox (any SSH/SFTP file manager) |
@@ -24,6 +24,7 @@ details behind the boxes: components, rules, and operational lessons.
 | **cron** | Nightly WebDAV backups: music 04:37, GitHub repo mirrors 04:11 |
 | **Xray VPN** | Personal VPN on the same VPS: VLESS + REALITY on :8443, same `$DOMAIN`; clients v2rayN (Windows) / v2rayNG (Android); see the private `redl-vpn` repo |
 | **erudit-bot** | Telegram bot (Docker, private repo) drafting posts for the author's channel: voice notes → text (whisper: local / OpenAI / Groq), text → Anthropic → preview channel → main channel; pulls style from / pushes post notes to the notes vault on GitHub (deploy key); outbound only — no exposed ports |
+| **parley** | Personal Poe-like chat (Docker, public repo `roman-redl/parley`, `/opt/parley`): LibreChat on `parley.$DOMAIN` and Open WebUI on `parley-webui.$DOMAIN`, proxied by Caddy over the shared `selfhost-music_default` network; an MCP tools container works in its own clones of notes and handoff (deploy keys, `/opt/parley-data`). A Caddy restart briefly takes parley down too |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
 
 ## Personal AI routing on :443
