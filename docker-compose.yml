@@ -1,9 +1,17 @@
 version: "3"
 
+# Rotate container logs: without limits the json-file driver grows forever.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   navidrome:
     image: deluan/navidrome:latest
     restart: unless-stopped
+    logging: *logging
     ports:
       - "4533:4533"
     volumes:
@@ -28,6 +36,7 @@ services:
     # Stock Caddy + forwardproxy plugin; see caddy/Dockerfile
     build: ./caddy
     restart: unless-stopped
+    logging: *logging
     ports:
       - "80:80"
       - "443:443"
@@ -49,6 +58,7 @@ services:
   # audiobookshelf:
   #   image: ghcr.io/advplyr/audiobookshelf:latest
   #   restart: unless-stopped
+  #   logging: *logging
   #   ports:
   #     - "13378:80"
   #   volumes:
@@ -62,6 +72,7 @@ services:
   # slskd:
   #   image: slskd/slskd:latest
   #   restart: unless-stopped
+  #   logging: *logging
   #   ports:
   #     - "127.0.0.1:5030:5030"     # Web UI + API (localhost only)
   #   volumes:
