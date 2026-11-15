@@ -187,6 +187,10 @@ account for the sign when parsing.
   and remove the cause (like the rejected names above) instead of wiping it.
 - Every rsync into the mount needs `--inplace` (rename of rsync's temp file fails with
   I/O error 5) — including small files such as `.m3u`.
+- davfs occasionally fails a single delete or write with `Resource temporarily
+  unavailable` (rsync code 23); a retry passes. The backup logs a WARN, finishes the
+  remaining steps (DB snapshot, playlist export) and exits 1 at the end, instead of
+  aborting at the first failed rsync.
 
 ## Misc lessons
 

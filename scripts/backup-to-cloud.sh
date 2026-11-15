@@ -35,10 +35,17 @@ BAD_NAMES='*[?"*:<>|\\]*'
 find /opt/selfhost-music/music -name "$BAD_NAMES" -printf '%P\n' | while read -r f; do
     log "WARN: not backed up, name rejected by cloud: $f"
 done
+# davfs sometimes fails a single delete/write with "Resource temporarily unavailable"
+# (rsync code 23): log it and go on with the remaining steps instead of aborting.
+FAILED=0
+sync_step() {
+    rsync "$@" >> "$LOGFILE" 2>&1 || { log "WARN: rsync rc=$? (see errors above), continuing"; FAILED=1; }
+}
+
 log "Syncing music..."
-rsync -a --delete --inplace --exclude 'navidrome-data' --exclude 'git-backup' \
+sync_step -a --delete --inplace --exclude 'navidrome-data' --exclude 'git-backup' \
     --exclude "$BAD_NAMES" \
-    /opt/selfhost-music/music/ "$BACKUP_ROOT/" >> "$LOGFILE" 2>&1
+    /opt/selfhost-music/music/ "$BACKUP_ROOT/"
 log "Music sync done."
 
 # Backup Navidrome data (playlists, favourites, users, progress)
@@ -51,10 +58,10 @@ python3 -c "import sqlite3; src = sqlite3.connect('/opt/selfhost-music/data/navi
 log "Syncing Navidrome data..."
 # --inplace — same davfs2 rename failure as above (seen on playlists/*.m3u).
 # --exclude playlists-export: written below, not present in data/.
-rsync -a --delete --inplace --exclude 'cache' --exclude 'navidrome.db' --exclude 'navidrome.db-wal' --exclude 'navidrome.db-shm' \
+sync_step -a --delete --inplace --exclude 'cache' --exclude 'navidrome.db' --exclude 'navidrome.db-wal' --exclude 'navidrome.db-shm' \
     --exclude 'playlists-export' \
-    /opt/selfhost-music/data/ "$BACKUP_ROOT/navidrome-data/" >> "$LOGFILE" 2>&1
-rsync -a --inplace /tmp/navidrome-snapshot.db "$BACKUP_ROOT/navidrome-data/navidrome-snapshot.db" >> "$LOGFILE" 2>&1
+    /opt/selfhost-music/data/ "$BACKUP_ROOT/navidrome-data/"
+sync_step -a --inplace /tmp/navidrome-snapshot.db "$BACKUP_ROOT/navidrome-data/navidrome-snapshot.db"
 log "Navidrome data sync done."
 
 # Playlists as .m3u from the same snapshot — readable without Navidrome.
@@ -63,8 +70,12 @@ log "Exporting playlists..."
 rm -rf /tmp/playlists-export
 n=$(python3 /opt/selfhost-music/scripts/export_playlists_m3u.py /tmp/playlists-export /tmp/navidrome-snapshot.db) \
     || { log "ERROR: playlist export failed"; exit 1; }
-rsync -a --delete --inplace /tmp/playlists-export/ "$BACKUP_ROOT/navidrome-data/playlists-export/" >> "$LOGFILE" 2>&1
+sync_step -a --delete --inplace /tmp/playlists-export/ "$BACKUP_ROOT/navidrome-data/playlists-export/"
 rm -rf /tmp/playlists-export /tmp/navidrome-snapshot.db
 log "Exported $n playlists."
 
+if [ "$FAILED" -ne 0 ]; then
+    log "ERROR: backup completed with rsync errors (see WARN above)."
+    exit 1
+fi
 log "Backup completed successfully."
