@@ -21,10 +21,10 @@ details behind the boxes: components, rules, and operational lessons.
 | **DuckDNS** (cron `/opt/duckdns/duck.sh`) | Public name `$DOMAIN`; keeps the VPS IP current |
 | **davfs2 → Mail.ru WebDAV** | Backup target mounted on the VPS; nightly rsync lands in `<mount>/backup/` |
 | **GitHub** | Deploy source: the VPS checkout pulls `--ff-only`; nothing is edited on the VPS by hand |
-| **cron** | Nightly WebDAV backups: music 04:37, GitHub repo mirrors 04:11 |
+| **cron** | Nightly WebDAV backups: music + parley data 04:37, GitHub repo mirrors 04:11 |
 | **Xray VPN** | Personal VPN on the same VPS: VLESS + REALITY on :8443, same `$DOMAIN`; clients v2rayN (Windows) / v2rayNG (Android); see the private `redl-vpn` repo |
 | **erudit-bot** | Telegram bot (Docker, private repo) drafting posts for the author's channel: voice notes → text (whisper: local / OpenAI / Groq), text → Anthropic → preview channel → main channel; pulls style from / pushes post notes to the notes vault on GitHub (deploy key); outbound only — no exposed ports |
-| **parley** | Personal Poe-like chat (Docker, public repo `roman-redl/parley`, `/opt/parley`): LibreChat on `parley.$DOMAIN` and Open WebUI on `parley-webui.$DOMAIN`, proxied by Caddy over the shared `selfhost-music_default` network; an MCP tools container works in its own clones of notes and handoff (deploy keys, `/opt/parley-data`). A Caddy restart briefly takes parley down too |
+| **parley** | Personal Poe-like chat (Docker, public repo `roman-redl/parley`, `/opt/parley`): LibreChat (with MongoDB) on `parley.$DOMAIN`, proxied by Caddy over the shared `selfhost-music_default` network; an MCP tools container works in its own clones of notes and handoff (deploy keys, `/opt/parley-data`). A Caddy restart briefly takes parley down too |
 | **Clients** | Psysonic (desktop, offline cache), Substreamer (Android, offline cache), any Subsonic client |
 
 ## Personal AI routing on :443
@@ -159,6 +159,21 @@ account for the sign when parsing.
   playlists readable without Navidrome. Playlists exist only in the DB:
   `ND_AUTOIMPORTPLAYLISTS=false`, so no `.m3u` may live in the music folder (it would be
   imported as a duplicate playlist).
+- The same run backs up parley (`/opt/parley`, LibreChat), after the music steps, as dated
+  files under `<mount>/backup/parley/`: `mongo/mongo-LibreChat-YYYY-MM-DD.archive.gz`
+  (`mongodump --db LibreChat --archive --gzip` via `docker compose -f
+  /opt/parley/docker-compose.yml exec -T mongodb`, addressed by compose project, not by
+  container name; the DB has no auth and is reachable only inside the container) and
+  `files/files-YYYY-MM-DD.tar.gz` (`data/librechat/images` + `uploads`; logs are not
+  backed up). The last 3 copies of each are kept, older ones are deleted, and only after
+  both uploads succeeded. Both files are staged in `/tmp` first, the dump is checked
+  (non-empty, `gzip -t`). A failure of this part is logged as a WARN, the run still
+  finishes everything else and exits 1 at the end — like any other rsync failure. The
+  music rsync excludes `/parley`, otherwise its `--delete` would remove this folder.
+  The script runs as root, so it reads `data/librechat` (owner uid 1001) without extra
+  permissions. Restore the DB:
+  `docker compose -f /opt/parley/docker-compose.yml exec -T mongodb mongorestore
+  --archive --gzip --drop < mongo-LibreChat-<date>.archive.gz`.
 - Separate nightly cron 04:11 → `/usr/local/bin/git-backup-to-cloud` (VPS-local, not in
   this repo): `git fetch` in `/opt/git-backup/*.git` — `--mirror` clones of the personal
   GitHub repos (the notes vault among them; `handoff` excluded) — then rsync into
@@ -192,6 +207,13 @@ account for the sign when parsing.
   unavailable` (rsync code 23); a retry passes. The backup logs a WARN, finishes the
   remaining steps (DB snapshot, playlist export) and exits 1 at the end, instead of
   aborting at the first failed rsync.
+
+## Container logs
+
+Every service in `docker-compose.yml` uses the `json-file` driver with rotation
+(`max-size: 10m`, `max-file: 3`, YAML anchor `x-logging`) — at most 30 MB per container.
+The setting applies only to containers created after the change: `docker compose up -d`
+recreates them.
 
 ## Misc lessons
 

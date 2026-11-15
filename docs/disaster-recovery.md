@@ -8,6 +8,8 @@ Nightly cron (`scripts/backup-to-cloud.sh`) syncs to WebDAV cloud storage:
 |---|---|---|---|
 | Music library | `/opt/selfhost-music/music/` | `backup/` (files at the root) | your library size |
 | Navidrome DB snapshot | SQLite backup API | `backup/navidrome-data/navidrome-snapshot.db` | ~10–50 MB |
+| parley (LibreChat) DB dump | `mongodump` of database `LibreChat` | `backup/parley/mongo/mongo-LibreChat-<date>.archive.gz` (last 3) | ~1 MB |
+| parley files | `/opt/parley/data/librechat/{images,uploads}` | `backup/parley/files/files-<date>.tar.gz` (last 3) | small |
 | GitHub repo mirrors | `/opt/git-backup/*.git` | `backup/git-backup/` | ~330 MB |
 
 The snapshot contains playlists, favorites, users, play counts. The live WAL database and
@@ -62,6 +64,13 @@ authoritative source is GitHub itself.
    line if still wanted (see [architecture.md](architecture.md), "Backups"). If GitHub
    itself is unreachable, recover a repo with
    `git clone /mnt/mailru-backup/backup/git-backup/<repo>.git`.
+
+6. **(Optional) parley** — after `/opt/parley` is deployed from its repo and the `mongodb`
+   container is running: unpack the files with `tar -xzf
+   /mnt/mailru-backup/backup/parley/files/files-<date>.tar.gz -C /opt/parley/data/librechat`
+   (owner uid 1001) and restore the DB with `docker compose -f
+   /opt/parley/docker-compose.yml exec -T mongodb mongorestore --archive --gzip --drop <
+   /mnt/mailru-backup/backup/parley/mongo/mongo-LibreChat-<date>.archive.gz`.
 
 **Expected time:** ~1 hour, dominated by downloading the library from the cloud.
 

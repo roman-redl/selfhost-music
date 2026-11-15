@@ -75,6 +75,10 @@ systemd service, and sets up the DuckDNS update cron.
    mirrors of personal GitHub repos into the same WebDAV mount) — see
    [architecture.md](architecture.md), "Backups". It is not installed by this repo.
 
+   The same script also backs up parley (MongoDB dump + LibreChat images/uploads from
+   `/opt/parley`) into `<mount>/backup/parley/`; it needs `docker compose` in root's
+   `PATH`. Without a running parley stack that step logs a WARN and the run exits 1.
+
 6. **First login** — open `https://$DOMAIN`, create the admin account, drop your first
    track into the inbox.
 

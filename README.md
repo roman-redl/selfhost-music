@@ -61,7 +61,7 @@ all on a single free-tier VPS.
                              │ └───────────────────────────────┘ │         │
                              │ ┌───────────────────────────────┐ │         │
                              │ │ parley (Docker): LibreChat +  │ │         │
-                             │ │ Open WebUI behind Caddy, MCP  │ │         │
+                             │ │ MongoDB behind Caddy, MCP     │ │         │
                              │ │ tools on notes/handoff clones │ │         │
                              │ └───────────────────────────────┘ │         │
                              │ ┌──────────────┐ ┌──────────────┐ │         │
@@ -137,6 +137,7 @@ lives in one cloud folder — personal cloud folders are never touched:
 ├── <all music files>            # rsync --delete from /music/
 ├── navidrome-data/
 │   └── navidrome-snapshot.db    # consistent snapshot via the SQLite backup API
+├── parley/                      # LibreChat: mongo/ (mongodump) + files/ (images, uploads), last 3 each
 └── git-backup/                  # mirrors of personal GitHub repos (adjacent 04:11 job)
 ```
 
