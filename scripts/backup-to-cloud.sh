@@ -105,7 +105,7 @@ parley_backup() {
     log "Dumping parley MongoDB..."
     # timeout runs inside the container: killing only the docker client would leave mongodump running
     docker compose -f "$PARLEY_COMPOSE" exec -T mongodb \
-        timeout 900 mongodump --db LibreChat --archive --gzip > "$stage/mongo-LibreChat-$day.archive.gz" 2>> "$LOGFILE" \
+        timeout 900 mongodump --quiet --db LibreChat --archive --gzip > "$stage/mongo-LibreChat-$day.archive.gz" 2>> "$LOGFILE" \
         || { log "WARN: parley: mongodump failed"; rm -rf "$stage"; return 1; }
     # -s: a dump of an existing database is never empty; gzip -t catches a truncated stream
     if [ ! -s "$stage/mongo-LibreChat-$day.archive.gz" ] || ! gzip -t "$stage/mongo-LibreChat-$day.archive.gz"; then
