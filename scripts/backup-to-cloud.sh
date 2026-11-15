@@ -36,7 +36,7 @@ find /opt/selfhost-music/music -name "$BAD_NAMES" -printf '%P\n' | while read -r
     log "WARN: not backed up, name rejected by cloud: $f"
 done
 log "Syncing music..."
-rsync -a --delete --inplace --exclude 'navidrome-data' --exclude 'git-backup' --exclude 'Аудиокниги' \
+rsync -a --delete --inplace --exclude 'navidrome-data' --exclude 'git-backup' \
     --exclude "$BAD_NAMES" \
     /opt/selfhost-music/music/ "$BACKUP_ROOT/" >> "$LOGFILE" 2>&1
 log "Music sync done."
