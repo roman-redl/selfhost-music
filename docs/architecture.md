@@ -153,6 +153,11 @@ account for the sign when parsing.
   The live WAL database and the regenerable cache directory are excluded; rsync gets
   `--exclude navidrome-data` (and `--exclude git-backup` for the adjacent mirrors)
   so `--delete` on the music pass cannot remove them.
+- The same run exports every playlist from the DB snapshot as `.m3u`
+  (`scripts/export_playlists_m3u.py`) into `navidrome-data/playlists-export/` — current
+  playlists readable without Navidrome. Playlists exist only in the DB:
+  `ND_AUTOIMPORTPLAYLISTS=false`, so no `.m3u` may live in the music folder (it would be
+  imported as a duplicate playlist).
 - Separate nightly cron 04:11 → `/usr/local/bin/git-backup-to-cloud` (VPS-local, not in
   this repo): `git fetch` in `/opt/git-backup/*.git` — `--mirror` clones of the personal
   GitHub repos (the notes vault among them; `handoff` excluded) — then rsync into
@@ -181,7 +186,7 @@ account for the sign when parsing.
   the whole library (~13 GB each way, 2 hours; 2026-11-14). If the cache bloats, find
   and remove the cause (like the rejected names above) instead of wiping it.
 - Every rsync into the mount needs `--inplace` (rename of rsync's temp file fails with
-  I/O error 5) — including small files such as `navidrome-data/playlists/*.m3u`.
+  I/O error 5) — including small files such as `.m3u`.
 
 ## Misc lessons
 

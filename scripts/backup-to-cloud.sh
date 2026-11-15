@@ -50,10 +50,21 @@ python3 -c "import sqlite3; src = sqlite3.connect('/opt/selfhost-music/data/navi
     || { log "ERROR: DB snapshot failed"; exit 1; }
 log "Syncing Navidrome data..."
 # --inplace — same davfs2 rename failure as above (seen on playlists/*.m3u).
+# --exclude playlists-export: written below, not present in data/.
 rsync -a --delete --inplace --exclude 'cache' --exclude 'navidrome.db' --exclude 'navidrome.db-wal' --exclude 'navidrome.db-shm' \
+    --exclude 'playlists-export' \
     /opt/selfhost-music/data/ "$BACKUP_ROOT/navidrome-data/" >> "$LOGFILE" 2>&1
 rsync -a --inplace /tmp/navidrome-snapshot.db "$BACKUP_ROOT/navidrome-data/navidrome-snapshot.db" >> "$LOGFILE" 2>&1
-rm -f /tmp/navidrome-snapshot.db
 log "Navidrome data sync done."
+
+# Playlists as .m3u from the same snapshot — readable without Navidrome.
+# Kept outside the music folder so Navidrome never imports them.
+log "Exporting playlists..."
+rm -rf /tmp/playlists-export
+n=$(python3 /opt/selfhost-music/scripts/export_playlists_m3u.py /tmp/playlists-export /tmp/navidrome-snapshot.db) \
+    || { log "ERROR: playlist export failed"; exit 1; }
+rsync -a --delete --inplace /tmp/playlists-export/ "$BACKUP_ROOT/navidrome-data/playlists-export/" >> "$LOGFILE" 2>&1
+rm -rf /tmp/playlists-export /tmp/navidrome-snapshot.db
+log "Exported $n playlists."
 
 log "Backup completed successfully."
