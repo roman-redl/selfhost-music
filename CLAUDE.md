@@ -61,6 +61,9 @@ Details: [docs/architecture.md](docs/architecture.md) (rules, decisions, lessons
 ## Playlists
 
 - **Navidrome is the source of truth** (web UI and clients). Everyday edits happen there.
+  Playlists live only in its DB: file import is off (`ND_AUTOIMPORTPLAYLISTS=false`) —
+  never put `.m3u` files into the music folder. The nightly backup exports all playlists
+  as `.m3u` to the cloud (`navidrome-data/playlists-export/`).
 - Local `playlists/*.m3u` are snapshot backups taken from Navidrome (flow is strictly
   one-way: Navidrome → git). Importing an `.m3u` back is a disaster-recovery-only
   operation via the Subsonic API with NFC matching against the full index — never

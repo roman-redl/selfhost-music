@@ -15,7 +15,9 @@ services:
       ND_SCANSCHEDULE: "1h"
       ND_ENABLETRANSCODING: "true"
       ND_LOGLEVEL: info
-      ND_PLAYLISTSPATH: /music/_Playlists
+      # Playlists live only in the Navidrome DB (created in the UI/API). Without this
+      # any .m3u in /music would be imported as a duplicate playlist on the next scan.
+      ND_AUTOIMPORTPLAYLISTS: "false"
       # Navidrome default is 5 logins / 20 s (brute-force protection for public servers).
       # This is a private server: the default throttles clients during bulk cover
       # downloads / library syncs. 1000/10 s ≈ effectively unlimited.
