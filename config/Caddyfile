@@ -43,15 +43,11 @@
     # }
 }
 
-# parley (github.com/roman-redl/parley, /opt/parley): chat interfaces on the
+# parley (github.com/roman-redl/parley, /opt/parley): LibreChat on the
 # shared network selfhost-music_default. DuckDNS resolves any sub-subdomain of
 # the main domain to the same IP, so no extra DuckDNS setup is needed.
 parley.{$DOMAIN:music.yourdomain.duckdns.org} {
     reverse_proxy parley-librechat:3080
-}
-
-parley-webui.{$DOMAIN:music.yourdomain.duckdns.org} {
-    reverse_proxy parley-webui:8080
 }
 
 # Catch-all on :443 for the forward proxy. A proxied request carries the
